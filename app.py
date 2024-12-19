@@ -26,7 +26,15 @@ def summarize():
 
         video_id = url.replace('https://www.youtube.com/watch?v=', '')
 
-        transcript = YouTubeTranscriptApi.get_transcript(video_id)
+        # Log to see if the video_id is correct
+        print(f"Video ID: {video_id}")
+
+        try:
+            transcript = YouTubeTranscriptApi.get_transcript(video_id)
+        except Exception as e:
+            print(f"Error fetching transcript: {str(e)}")  # Log the error
+            return jsonify({"error": f"Could not retrieve a transcript for the video. Error: {str(e)}"}), 400
+
         ans = ""
         for x in transcript:
             ans += x['text']
@@ -48,6 +56,7 @@ def summarize():
         return jsonify({"summary": summary})
 
     except Exception as e:
+        print(f"Unexpected error: {str(e)}")  # Log the error
         return jsonify({"error": str(e)}), 500
 
 
@@ -59,6 +68,14 @@ def version():
         "openai_version": openai.__version__,
         "youtube_transcript_api_version": pkg_resources.get_distribution("youtube-transcript-api").version
     })
+
+
+import requests
+
+@app.route('/test-youtube', methods=['GET'])
+def test_youtube():
+    response = requests.get('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+    return jsonify({"status": response.status_code, "content": response.text[:200]})
 
 
 if __name__ == '__main__':
