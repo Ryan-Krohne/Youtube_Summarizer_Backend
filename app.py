@@ -8,6 +8,8 @@ import openai
 import youtube_transcript_api
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import pkg_resources
+
 
 app = Flask(__name__)
 CORS(app)
@@ -55,7 +57,7 @@ def version():
         "python_version": sys.version,
         "flask_version": flask.__version__,
         "openai_version": openai.__version__,
-        "youtube_transcript_api_version": youtube_transcript_api.__version__
+        "youtube_transcript_api_version": pkg_resources.get_distribution("youtube-transcript-api").version
     })
 
 
