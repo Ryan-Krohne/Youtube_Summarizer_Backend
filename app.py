@@ -2,6 +2,12 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from openai import OpenAI
 from youtube_transcript_api import YouTubeTranscriptApi
+import sys
+import flask
+import openai
+import youtube_transcript_api
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)
@@ -41,6 +47,17 @@ def summarize():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route('/version', methods=['GET'])
+def version():
+    return jsonify({
+        "python_version": sys.version,
+        "flask_version": flask.__version__,
+        "openai_version": openai.__version__,
+        "youtube_transcript_api_version": youtube_transcript_api.__version__
+    })
+
 
 if __name__ == '__main__':
     app.run(debug=True)
