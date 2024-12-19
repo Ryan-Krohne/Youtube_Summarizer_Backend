@@ -9,7 +9,6 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import pkg_resources
 import requests
-import logging
 
 app = Flask(__name__)
 CORS(app)
@@ -18,18 +17,19 @@ client = OpenAI()
 
 @app.route('/summarize', methods=['POST'])
 def summarize():
-    logging.debug("1: Received request")
+    print("1: Received request")
     try:
         data = request.get_json()
         url = data.get('url')
         if not url:
             return jsonify({"error": "YouTube URL is required"}), 400
+        print(f"URL:" {url})
 
         video_id = url.replace('https://www.youtube.com/watch?v=', '')
 
         # Log to see if the video_id is correct
         print(f"Video ID: {video_id}")
-        logging.debug("2: Extracted video ID")
+        print("2: Extracted video ID")
         try:
             transcript = YouTubeTranscriptApi.get_transcript(video_id)
         except Exception as e:
