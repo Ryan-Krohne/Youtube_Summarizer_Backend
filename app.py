@@ -5,11 +5,10 @@ from youtube_transcript_api import YouTubeTranscriptApi
 import sys
 import flask
 import openai
-import youtube_transcript_api
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import pkg_resources
-
+import requests
 
 app = Flask(__name__)
 CORS(app)
@@ -18,6 +17,7 @@ client = OpenAI()
 
 @app.route('/summarize', methods=['POST'])
 def summarize():
+    print("1")
     try:
         data = request.get_json()
         url = data.get('url')
@@ -28,7 +28,7 @@ def summarize():
 
         # Log to see if the video_id is correct
         print(f"Video ID: {video_id}")
-
+        print("2")
         try:
             transcript = YouTubeTranscriptApi.get_transcript(video_id)
         except Exception as e:
@@ -69,8 +69,6 @@ def version():
         "youtube_transcript_api_version": pkg_resources.get_distribution("youtube-transcript-api").version
     })
 
-
-import requests
 
 @app.route('/test-youtube', methods=['GET'])
 def test_youtube():
