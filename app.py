@@ -23,7 +23,7 @@ def summarize():
         url = data.get('url')
         if not url:
             return jsonify({"error": "YouTube URL is required"}), 400
-        print(f"URL:" {url})
+        print(f"URL:", url)
 
         video_id = url.replace('https://www.youtube.com/watch?v=', '')
 
