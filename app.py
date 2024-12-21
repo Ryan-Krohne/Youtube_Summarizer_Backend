@@ -77,5 +77,22 @@ def test_youtube():
     return jsonify({"status": response.status_code, "content": response.text[:200]})
 
 
+@app.route('/greet', methods=['POST'])
+def greet():
+    print("1: Received request")
+    
+    completion = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": """Hi, how are you doing?
+
+            """}
+            ]
+        )
+    summary = completion.choices[0].message.content
+
+    return jsonify({"summary": summary})
+
 if __name__ == '__main__':
     app.run(debug=True)
