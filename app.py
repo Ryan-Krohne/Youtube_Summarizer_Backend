@@ -94,5 +94,38 @@ def greet():
 
     return jsonify({"summary": summary})
 
+
+@app.route('/get_transcript', methods=['GET'])
+def get_transcript():
+    print("1: Received GET request for transcript")
+    try:
+        # Select a random video URL
+        url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        print(f"Selected video URL: {url}")
+
+        # Extract video ID
+        video_id = url.split("v=")[-1]
+        print(f"Extracted video ID: {video_id}")
+
+        # Fetch the transcript
+        try:
+            transcript = YouTubeTranscriptApi.get_transcript(video_id)
+        except Exception as e:
+            print(f"Error fetching transcript: {str(e)}")  # Log the error
+            return jsonify({"error": f"Could not retrieve a transcript for the video. Error: {str(e)}"}), 400
+
+        # Combine transcript into a single string
+        transcript_text = " ".join([x['text'] for x in transcript])
+        print("2: Successfully fetched transcript")
+
+        return jsonify({
+            "video_url": url,
+            "transcript": transcript_text
+        })
+
+    except Exception as e:
+        print(f"Unexpected error: {str(e)}")  # Log the error
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     app.run(debug=True)
