@@ -95,7 +95,7 @@ def test_youtube():
     return jsonify({"status": response.status_code, "content": response.text[:200]})
 
 
-@app.route('/greet', methods=['POST'])
+@app.route('/greet', methods=['GET'])
 def greet():
     print("1: Received request")
     
