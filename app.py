@@ -9,11 +9,28 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import pkg_resources
 import requests
+import os
 
 app = Flask(__name__)
 CORS(app)
 
 client = OpenAI()
+
+PROXY = os.getenv("HTTP_PROXY", "http://123.45.67.89:8080")
+
+session = requests.Session()
+session.proxies = {
+    "http": PROXY,
+    "https": PROXY,
+}
+
+# Log the proxy being used
+print(f"Using proxy: {session.proxies}")
+
+def fetch_transcript_with_proxy(video_id):
+    # Set up the proxy for the YouTubeTranscriptApi
+    YouTubeTranscriptApi._http = session  # Patching the internal request session of YouTubeTranscriptApi
+    return YouTubeTranscriptApi.get_transcript(video_id)
 
 @app.route('/summarize', methods=['POST'])
 def summarize():
@@ -31,7 +48,8 @@ def summarize():
         print(f"Video ID: {video_id}")
         print("2: Extracted video ID")
         try:
-            transcript = YouTubeTranscriptApi.get_transcript(video_id)
+            # Use the patched method to fetch the transcript through the proxy
+            transcript = fetch_transcript_with_proxy(video_id)
         except Exception as e:
             print(f"Error fetching transcript: {str(e)}")  # Log the error
             return jsonify({"error": f"Could not retrieve a transcript for the video. Error: {str(e)}"}), 400
