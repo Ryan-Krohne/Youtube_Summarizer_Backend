@@ -3,10 +3,6 @@ from flask_cors import CORS
 from openai import OpenAI
 from youtube_transcript_api import YouTubeTranscriptApi
 import sys
-import flask
-import openai
-from flask import Flask, request, jsonify
-from flask_cors import CORS
 import pkg_resources
 import requests
 import os
@@ -15,21 +11,17 @@ app = Flask(__name__)
 CORS(app)
 
 client = OpenAI()
-
-PROXY = os.getenv("HTTP_PROXY", "http://123.45.67.89:8080")
-
 session = requests.Session()
-session.proxies = {
-    "http": PROXY,
-    "https": PROXY,
+session.proxies = { 
+    "http": os.getenv("HTTP_PROXY", "http://24.58.195.48:4444"), 
+    "https": os.getenv("HTTP_PROXY", "http://24.58.195.48:4444") 
 }
 
-# Log the proxy being used
 print(f"Using proxy: {session.proxies}")
 
 def fetch_transcript_with_proxy(video_id):
-    # Set up the proxy for the YouTubeTranscriptApi
-    YouTubeTranscriptApi._http = session  # Patching the internal request session of YouTubeTranscriptApi
+    YouTubeTranscriptApi.http = session
+    YouTubeTranscriptApi._http = session
     return YouTubeTranscriptApi.get_transcript(video_id)
 
 @app.route('/summarize', methods=['POST'])
