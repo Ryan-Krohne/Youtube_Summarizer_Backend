@@ -6,6 +6,7 @@ import sys
 import pkg_resources
 import requests
 from bs4 import BeautifulSoup  # Commented out BeautifulSoup import
+import yt_dlp
 
 app = Flask(__name__)
 CORS(app)
@@ -15,40 +16,30 @@ client = OpenAI()
 
 @app.route('/get_title', methods=['POST'])
 def get_title():
-    print("1: Received request for title")
     try:
+        # Get the YouTube URL from the request JSON
         data = request.get_json()
         url = data.get('url')
+        
         if not url:
             return jsonify({"error": "YouTube URL is required"}), 400
-        print(f"URL: {url}")
+        
+        # Set up yt-dlp options
+        ydl_opts = {
+            'quiet': True,  # Suppress unnecessary output
+            'force_generic_extractor': True,  # Force generic extractor to handle URLs
+        }
+        
+        # Initialize yt-dlp with options
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            # Extract video info
+            info_dict = ydl.extract_info(url, download=False)
+            video_title = info_dict.get('title', 'Unknown')
 
-        video_id = url.replace('https://www.youtube.com/watch?v=', '')
-        print(f"Video ID: {video_id}")
-        print("2: Extracted video ID")
-
-        # Scrape video title using Beautiful Soup
-        youtube_page = requests.get(url)
-        if youtube_page.status_code != 200:
-            print("Failed to fetch YouTube page")
-            return jsonify({"error": "Failed to fetch YouTube page"}), 400
-
-        soup = BeautifulSoup(youtube_page.text, 'html.parser')
-        title_tag = soup.find("meta", property="og:title")
-        if not title_tag or not title_tag.get("content"):
-            print("Could not extract video title")
-            return jsonify({"error": "Could not extract video title"}), 400
-
-        title = title_tag["content"]
-        print(f"Video Title: {title}")
-
-        return jsonify({"title": title})
+        return jsonify({"title": video_title})
 
     except Exception as e:
-        print(f"Unexpected error: {str(e)}")
         return jsonify({"error": str(e)}), 500
-
-
 
 
 @app.route('/summarize', methods=['POST'])
