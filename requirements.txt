@@ -4,3 +4,4 @@ openai
 youtube-transcript-api
 gunicorn
 requests
+beautifulsoup4

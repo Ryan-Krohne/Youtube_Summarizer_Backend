@@ -5,6 +5,7 @@ from youtube_transcript_api import YouTubeTranscriptApi
 import sys
 import pkg_resources
 import requests
+from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 CORS(app)
@@ -19,15 +20,26 @@ def summarize():
         url = data.get('url')
         if not url:
             return jsonify({"error": "YouTube URL is required"}), 400
-        print(f"URL:", url)
+        print(f"URL: {url}")
 
         video_id = url.replace('https://www.youtube.com/watch?v=', '')
-
-        # Log to see if the video_id is correct
         print(f"Video ID: {video_id}")
         print("2: Extracted video ID")
 
-        # Use the Shmoop API to get the transcript
+        # Scrape video title using Beautiful Soup
+        youtube_page = requests.get(url)
+        if youtube_page.status_code != 200:
+            return jsonify({"error": "Failed to fetch YouTube page"}), 400
+
+        soup = BeautifulSoup(youtube_page.text, 'html.parser')
+        title_tag = soup.find("meta", property="og:title")
+        if not title_tag or not title_tag.get("content"):
+            return jsonify({"error": "Could not extract video title"}), 400
+
+        title = title_tag["content"]
+        print(f"Video Title: {title}")
+
+        # Fetch transcript
         shmoop_url = "https://youtube-transcripts.p.rapidapi.com/youtube/transcript"
         headers = {
             "x-rapidapi-key": "817820eb8cmsha7b606618240564p19021djsn6d68dd3cbd32",
@@ -36,17 +48,14 @@ def summarize():
         params = {"videoId": video_id, "chunkSize": "500"}
 
         response = requests.get(shmoop_url, headers=headers, params=params)
-
         if response.status_code == 200:
             transcript = [item["text"] for item in response.json().get("content", [])]
         else:
             return jsonify({"error": "Could not fetch transcript"}), 400
 
         print(transcript)
-        # Combine the transcript text into a single string
         ans = " ".join(transcript)
 
-        # Generate the summary using GPT-4
         completion = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -60,13 +69,13 @@ def summarize():
             ]
         )
         summary = completion.choices[0].message.content
+        print("\n\n\n",summary)
 
-        return jsonify({"summary": summary})
+        return jsonify({"title": title, "summary": summary})
 
     except Exception as e:
-        print(f"Unexpected error: {str(e)}")  # Log the error
+        print(f"Unexpected error: {str(e)}")
         return jsonify({"error": str(e)}), 500
-
 
 
 @app.route('/version', methods=['GET'])
