@@ -57,6 +57,31 @@ def summarize():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route('/shmoop', methods=['GET'])
+def shmoop():
+    print("GET request received!")
+    video_id = request.args.get('videoId')
+    
+    if not video_id:
+        return jsonify({"error": "videoId parameter is required"}), 400
+    
+    url = "https://youtube-transcripts.p.rapidapi.com/youtube/transcript"
+    headers = {
+        "x-rapidapi-key": "817820eb8cmsha7b606618240564p19021djsn6d68dd3cbd32",
+        "x-rapidapi-host": "youtube-transcripts.p.rapidapi.com"
+    }
+    params = {"videoId": video_id, "chunkSize": "500"}
+
+    response = requests.get(url, headers=headers, params=params)
+
+    if response.status_code == 200:
+        transcript = [item["text"] for item in response.json().get("content", [])]
+        return jsonify({"transcript": " ".join(transcript)})
+    else:
+        return jsonify({"error": "Could not fetch transcript"}), 400
+
+
+
 @app.route('/version', methods=['GET'])
 def version():
     return jsonify({
