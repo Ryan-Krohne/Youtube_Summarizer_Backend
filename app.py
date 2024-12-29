@@ -88,7 +88,7 @@ def version():
         "flask_version": pkg_resources.get_distribution("flask").version,  # Corrected to get flask version
         "openai_version": pkg_resources.get_distribution("openai").version,
         "youtube_transcript_api_version": pkg_resources.get_distribution("youtube-transcript-api").version,
-        # "beautifulsoup_version": pkg_resources.get_distribution("beautifulsoup4").version  # Commented out
+        "beautifulsoup_version": pkg_resources.get_distribution("beautifulsoup4").version  # Commented out
     })
 
 
