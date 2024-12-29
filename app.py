@@ -29,11 +29,13 @@ def summarize():
         # Scrape video title using Beautiful Soup
         youtube_page = requests.get(url)
         if youtube_page.status_code != 200:
+            print("Failed to fetch YouTube page")
             return jsonify({"error": "Failed to fetch YouTube page"}), 400
 
         soup = BeautifulSoup(youtube_page.text, 'html.parser')
         title_tag = soup.find("meta", property="og:title")
         if not title_tag or not title_tag.get("content"):
+            print("Could not extract video title")
             return jsonify({"error": "Could not extract video title"}), 400
 
         title = title_tag["content"]
@@ -53,7 +55,7 @@ def summarize():
         else:
             return jsonify({"error": "Could not fetch transcript"}), 400
 
-        print(transcript)
+        print("\n\n\n GOT TRANSCRIPT")
         ans = " ".join(transcript)
 
         completion = client.chat.completions.create(
@@ -71,6 +73,7 @@ def summarize():
         summary = completion.choices[0].message.content
         print("\n\n\n",summary)
 
+        print("success")
         return jsonify({"title": title, "summary": summary})
 
     except Exception as e:
