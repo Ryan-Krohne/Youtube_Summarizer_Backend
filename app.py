@@ -5,12 +5,51 @@ from youtube_transcript_api import YouTubeTranscriptApi
 import sys
 import pkg_resources
 import requests
-# from bs4 import BeautifulSoup  # Commented out BeautifulSoup import
+from bs4 import BeautifulSoup  # Commented out BeautifulSoup import
 
 app = Flask(__name__)
 CORS(app)
 
 client = OpenAI()
+
+
+@app.route('/get_title', methods=['POST'])
+def get_title():
+    print("1: Received request for title")
+    try:
+        data = request.get_json()
+        url = data.get('url')
+        if not url:
+            return jsonify({"error": "YouTube URL is required"}), 400
+        print(f"URL: {url}")
+
+        video_id = url.replace('https://www.youtube.com/watch?v=', '')
+        print(f"Video ID: {video_id}")
+        print("2: Extracted video ID")
+
+        # Scrape video title using Beautiful Soup
+        youtube_page = requests.get(url)
+        if youtube_page.status_code != 200:
+            print("Failed to fetch YouTube page")
+            return jsonify({"error": "Failed to fetch YouTube page"}), 400
+
+        soup = BeautifulSoup(youtube_page.text, 'html.parser')
+        title_tag = soup.find("meta", property="og:title")
+        if not title_tag or not title_tag.get("content"):
+            print("Could not extract video title")
+            return jsonify({"error": "Could not extract video title"}), 400
+
+        title = title_tag["content"]
+        print(f"Video Title: {title}")
+
+        return jsonify({"title": title})
+
+    except Exception as e:
+        print(f"Unexpected error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
+
 
 @app.route('/summarize', methods=['POST'])
 def summarize():
