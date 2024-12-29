@@ -5,7 +5,7 @@ from youtube_transcript_api import YouTubeTranscriptApi
 import sys
 import pkg_resources
 import requests
-from bs4 import BeautifulSoup
+# from bs4 import BeautifulSoup  # Commented out BeautifulSoup import
 
 app = Flask(__name__)
 CORS(app)
@@ -26,20 +26,20 @@ def summarize():
         print(f"Video ID: {video_id}")
         print("2: Extracted video ID")
 
-        # Scrape video title using Beautiful Soup
-        youtube_page = requests.get(url)
-        if youtube_page.status_code != 200:
-            print("Failed to fetch YouTube page")
-            return jsonify({"error": "Failed to fetch YouTube page"}), 400
+        # Scrape video title using Beautiful Soup (commented out)
+        # youtube_page = requests.get(url)
+        # if youtube_page.status_code != 200:
+        #     print("Failed to fetch YouTube page")
+        #     return jsonify({"error": "Failed to fetch YouTube page"}), 400
 
-        soup = BeautifulSoup(youtube_page.text, 'html.parser')
-        title_tag = soup.find("meta", property="og:title")
-        if not title_tag or not title_tag.get("content"):
-            print("Could not extract video title")
-            return jsonify({"error": "Could not extract video title"}), 400
+        # soup = BeautifulSoup(youtube_page.text, 'html.parser')
+        # title_tag = soup.find("meta", property="og:title")
+        # if not title_tag or not title_tag.get("content"):
+        #     print("Could not extract video title")
+        #     return jsonify({"error": "Could not extract video title"}), 400
 
-        title = title_tag["content"]
-        print(f"Video Title: {title}")
+        # title = title_tag["content"]
+        # print(f"Video Title: {title}")
 
         # Fetch transcript
         shmoop_url = "https://youtube-transcripts.p.rapidapi.com/youtube/transcript"
@@ -74,7 +74,7 @@ def summarize():
         print("\n\n\n",summary)
 
         print("success")
-        return jsonify({"title": title, "summary": summary})
+        return jsonify({"title": "Unknown", "summary": summary})  # Return "Unknown" for title
 
     except Exception as e:
         print(f"Unexpected error: {str(e)}")
@@ -85,10 +85,10 @@ def summarize():
 def version():
     return jsonify({
         "python_version": sys.version,
-        "flask_version": flask.__version__,
-        "openai_version": openai.__version__,
+        "flask_version": pkg_resources.get_distribution("flask").version,  # Corrected to get flask version
+        "openai_version": pkg_resources.get_distribution("openai").version,
         "youtube_transcript_api_version": pkg_resources.get_distribution("youtube-transcript-api").version,
-        "beautifulsoup_version": pkg_resources.get_distribution("beautifulsoup4").version
+        # "beautifulsoup_version": pkg_resources.get_distribution("beautifulsoup4").version  # Commented out
     })
 
 
