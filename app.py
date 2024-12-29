@@ -26,16 +26,27 @@ def summarize():
         # Log to see if the video_id is correct
         print(f"Video ID: {video_id}")
         print("2: Extracted video ID")
-        try:
-            transcript = YouTubeTranscriptApi.get_transcript(video_id)
-        except Exception as e:
-            print(f"Error fetching transcript: {str(e)}")  # Log the error
-            return jsonify({"error": f"Could not retrieve a transcript for the video. Error: {str(e)}"}), 400
 
-        ans = ""
-        for x in transcript:
-            ans += x['text']
+        # Use the Shmoop API to get the transcript
+        shmoop_url = "https://youtube-transcripts.p.rapidapi.com/youtube/transcript"
+        headers = {
+            "x-rapidapi-key": "817820eb8cmsha7b606618240564p19021djsn6d68dd3cbd32",
+            "x-rapidapi-host": "youtube-transcripts.p.rapidapi.com"
+        }
+        params = {"videoId": video_id, "chunkSize": "500"}
 
+        response = requests.get(shmoop_url, headers=headers, params=params)
+
+        if response.status_code == 200:
+            transcript = [item["text"] for item in response.json().get("content", [])]
+        else:
+            return jsonify({"error": "Could not fetch transcript"}), 400
+
+        print(transcript)
+        # Combine the transcript text into a single string
+        ans = " ".join(transcript)
+
+        # Generate the summary using GPT-4
         completion = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -55,30 +66,6 @@ def summarize():
     except Exception as e:
         print(f"Unexpected error: {str(e)}")  # Log the error
         return jsonify({"error": str(e)}), 500
-
-
-@app.route('/shmoop', methods=['GET'])
-def shmoop():
-    print("GET request received!")
-    video_id = request.args.get('videoId')
-    
-    if not video_id:
-        return jsonify({"error": "videoId parameter is required"}), 400
-    
-    url = "https://youtube-transcripts.p.rapidapi.com/youtube/transcript"
-    headers = {
-        "x-rapidapi-key": "817820eb8cmsha7b606618240564p19021djsn6d68dd3cbd32",
-        "x-rapidapi-host": "youtube-transcripts.p.rapidapi.com"
-    }
-    params = {"videoId": video_id, "chunkSize": "500"}
-
-    response = requests.get(url, headers=headers, params=params)
-
-    if response.status_code == 200:
-        transcript = [item["text"] for item in response.json().get("content", [])]
-        return jsonify({"transcript": " ".join(transcript)})
-    else:
-        return jsonify({"error": "Could not fetch transcript"}), 400
 
 
 
