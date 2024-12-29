@@ -87,7 +87,8 @@ def version():
         "python_version": sys.version,
         "flask_version": flask.__version__,
         "openai_version": openai.__version__,
-        "youtube_transcript_api_version": pkg_resources.get_distribution("youtube-transcript-api").version
+        "youtube_transcript_api_version": pkg_resources.get_distribution("youtube-transcript-api").version,
+        "beautifulsoup_version": pkg_resources.get_distribution("beautifulsoup4").version
     })
 
 
