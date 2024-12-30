@@ -16,7 +16,7 @@ client = OpenAI()
 def ping_self():
     try:
         response = requests.get(
-            "https://https://renderbackend-8hhs.onrender.com/ping",  # Use the deployed URL
+            "https://renderbackend-8hhs.onrender.com/ping",  # Use the deployed URL
             headers={"User-Agent": "Flask-Ping-Bot"}  # Add a User-Agent header
         )
         if response.status_code == 200:

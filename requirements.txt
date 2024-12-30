@@ -6,3 +6,4 @@ gunicorn
 requests
 beautifulsoup4
 yt-dlp
+APScheduler
