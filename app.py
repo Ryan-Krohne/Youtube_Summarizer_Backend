@@ -6,12 +6,30 @@ import sys
 import pkg_resources
 import requests
 import yt_dlp
+from apscheduler.schedulers.background import BackgroundScheduler
 
 app = Flask(__name__)
 CORS(app)
 
 client = OpenAI()
 
+def ping_self():
+    try:
+        response = requests.get(
+            "https://https://renderbackend-8hhs.onrender.com/ping",  # Use the deployed URL
+            headers={"User-Agent": "Flask-Ping-Bot"}  # Add a User-Agent header
+        )
+        if response.status_code == 200:
+            print("Successfully pinged the server.")
+        else:
+            print(f"Ping failed with status code: {response.status_code}")
+    except Exception as e:
+        print(f"Error while pinging the server: {e}")
+
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(func=ping_self, trigger="interval", seconds=5)
+scheduler.start()
 
 @app.route('/get_title', methods=['POST'])
 def get_title():
@@ -161,6 +179,17 @@ def get_transcript():
     except Exception as e:
         print(f"Unexpected error: {str(e)}")  # Log the error
         return jsonify({"error": str(e)}), 500
+
+# Flask route to handle the ping
+@app.route("/ping")
+def ping():
+    print("Pong! Server is alive!")
+    return "Pong! Server is alive!", 200
+
+# Flask home route
+@app.route("/")
+def home():
+    return "Flask app is running and pinging itself every 5 second!"
 
 if __name__ == '__main__':
     app.run(debug=True)
