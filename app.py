@@ -28,7 +28,7 @@ def ping_self():
 
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(func=ping_self, trigger="interval", seconds=5)
+scheduler.add_job(func=ping_self, trigger="interval", seconds=14 * 60)
 scheduler.start()
 
 @app.route('/get_title', methods=['POST'])
