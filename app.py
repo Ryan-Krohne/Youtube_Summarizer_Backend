@@ -72,14 +72,14 @@ def summarize():
         # print(f"Video Title: {title}")
 
         # Fetch transcript
-        shmoop_url = "https://youtube-transcripts.p.rapidapi.com/youtube/transcript"
+        rapid_api_url = "https://youtube-transcripts.p.rapidapi.com/youtube/transcript"
         headers = {
             "x-rapidapi-key": "817820eb8cmsha7b606618240564p19021djsn6d68dd3cbd32",
             "x-rapidapi-host": "youtube-transcripts.p.rapidapi.com"
         }
         params = {"videoId": video_id, "chunkSize": "500"}
 
-        response = requests.get(shmoop_url, headers=headers, params=params)
+        response = requests.get(rapid_api_url, headers=headers, params=params)
         if response.status_code == 200:
             transcript = [item["text"] for item in response.json().get("content", [])]
         else:
