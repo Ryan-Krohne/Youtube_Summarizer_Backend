@@ -83,6 +83,24 @@ def summarize():
         print(f"Video ID: {video_id}")
         print("2: Extracted video ID")
 
+
+        #Get Title
+        url = "https://yt-api.p.rapidapi.com/video/info"
+        querystring = {"id": video_id}
+
+        headers = {
+        "x-rapidapi-key": "817820eb8cmsha7b606618240564p19021djsn6d68dd3cbd32",
+        "x-rapidapi-host": "yt-api.p.rapidapi.com"
+        }
+
+        # Make the request to the API
+        response = requests.get(url, headers=headers, params=querystring)
+        response.raise_for_status()
+        data = response.json()
+
+        title=data.get("title")
+
+
         # Fetch transcript
         rapid_api_url = "https://youtube-transcripts.p.rapidapi.com/youtube/transcript"
         headers = {
@@ -116,7 +134,7 @@ def summarize():
         print("\n\n\n",summary)
 
         print("success")
-        return jsonify({"title": "Unknown", "summary": summary})  # Return "Unknown" for title
+        return jsonify({"title": title, "summary": summary})
 
     except Exception as e:
         print(f"Unexpected error: {str(e)}")
