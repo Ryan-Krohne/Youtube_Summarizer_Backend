@@ -31,31 +31,41 @@ scheduler = BackgroundScheduler()
 scheduler.add_job(func=ping_self, trigger="interval", seconds=14 * 60)
 scheduler.start()
 
-@app.route('/get_title', methods=['POST'])
+@app.route('/get_title', methods=['GET'])
 def get_title():
+    # Extract video URL from the query parameters
+    video_url = request.args.get("url")
+
+    if not video_url:
+        return jsonify({"error": "Video URL is required"}), 400
+
+    # Parse the video ID using replace
+    if video_url.startswith('https://www.youtube.com/watch?v='):
+        video_id = video_url.replace('https://www.youtube.com/watch?v=', '')
+    else:
+        return jsonify({"error": "Invalid YouTube URL format"}), 400
+
+    # RapidAPI endpoint and headers
+    url = "https://yt-api.p.rapidapi.com/video/info"
+    querystring = {"id": video_id}
+
+    headers = {
+        "x-rapidapi-key": "817820eb8cmsha7b606618240564p19021djsn6d68dd3cbd32",
+        "x-rapidapi-host": "yt-api.p.rapidapi.com"
+    }
+
     try:
-        # Get the YouTube URL from the request JSON
-        data = request.get_json()
-        url = data.get('url')
-        
-        if not url:
-            return jsonify({"error": "YouTube URL is required"}), 400
-        
-        # Set up yt-dlp options
-        ydl_opts = {
-            'quiet': True,  # Suppress unnecessary output
-            'force_generic_extractor': True,  # Force generic extractor to handle URLs
-        }
-        
-        # Initialize yt-dlp with options
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            # Extract video info
-            info_dict = ydl.extract_info(url, download=False)
-            video_title = info_dict.get('title', 'Unknown')
+        # Make the request to the API
+        response = requests.get(url, headers=headers, params=querystring)
+        response.raise_for_status()
+        data = response.json()
 
-        return jsonify({"title": video_title})
-
-    except Exception as e:
+        # Extract and return the title
+        if "title" in data:
+            return jsonify({"title": data["title"]})
+        else:
+            return jsonify({"error": "Title not found in the response"}), 404
+    except requests.exceptions.RequestException as e:
         return jsonify({"error": str(e)}), 500
 
 
