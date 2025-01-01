@@ -5,7 +5,6 @@ from youtube_transcript_api import YouTubeTranscriptApi
 import sys
 import pkg_resources
 import requests
-import yt_dlp
 from apscheduler.schedulers.background import BackgroundScheduler
 
 app = Flask(__name__)
@@ -138,6 +137,9 @@ def summarize():
         print(f"Unexpected error: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+@app.route('/testing', methods=['POST'])
+def testing():
+    return jsonify({"title": "how to run fast", "summary": "###The **video** discusses #the extensive history of Lockheed Martin, focusing on two major narratives: the Skunk Works and its innovative achievements, particularly in aerospace, and the influence of the military-industrial complex on American society and defense policies. It highlights how Lockheed Martin became a pivotal player in U.S. defense through pioneering aircraft like the SR-71 Blackbird and its contributions to technological advancements. The conversation emphasizes the dynamic between government contracts, the shifting perceptions of military spending, and the long-term implications of these developments on America's technological leadership and national security. The discussion addresses the challenges of adapting to new market needs and realities in a post-Cold War world while also critiquing the relationship between government interests and private contractors."})
 
 @app.route('/version', methods=['GET'])
 def version():
