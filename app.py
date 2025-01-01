@@ -71,18 +71,16 @@ def get_title():
 
 @app.route('/summarize', methods=['POST'])
 def summarize():
-    print("1: Received request")
+    
     try:
         data = request.get_json()
         url = data.get('url')
+
+        print(f"\n\nReceived request for summarize:", url)
         if not url:
             return jsonify({"error": "YouTube URL is required"}), 400
-        print(f"URL: {url}")
 
         video_id = url.replace('https://www.youtube.com/watch?v=', '')
-        print(f"Video ID: {video_id}")
-        print("2: Extracted video ID")
-
 
         #Get Title
         url = "https://yt-api.p.rapidapi.com/video/info"
@@ -99,7 +97,7 @@ def summarize():
         data = response.json()
 
         title=data.get("title")
-
+        print(f"Title:", title)
 
         # Fetch transcript
         rapid_api_url = "https://youtube-transcripts.p.rapidapi.com/youtube/transcript"
@@ -115,8 +113,9 @@ def summarize():
         else:
             return jsonify({"error": "Could not fetch transcript"}), 400
 
-        print("\n\n\n GOT TRANSCRIPT")
         ans = " ".join(transcript)
+
+        print("Receieved Transcript")
 
         completion = client.chat.completions.create(
             model="gpt-4o-mini",
@@ -131,9 +130,8 @@ def summarize():
             ]
         )
         summary = completion.choices[0].message.content
-        print("\n\n\n",summary)
 
-        print("success")
+        print("Returning Summary...")
         return jsonify({"title": title, "summary": summary})
 
     except Exception as e:
