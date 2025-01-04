@@ -6,6 +6,7 @@ import sys
 import pkg_resources
 import requests
 from apscheduler.schedulers.background import BackgroundScheduler
+import time
 
 app = Flask(__name__)
 CORS(app)
@@ -139,6 +140,7 @@ def summarize():
 
 @app.route('/testing', methods=['POST'])
 def testing():
+    time.sleep(5)
     return jsonify({"title": "how to run fast", "summary": "###The **video** discusses #the extensive history of Lockheed Martin, focusing on two major narratives: the Skunk Works and its innovative achievements, particularly in aerospace, and the influence of the military-industrial complex on American society and defense policies. It highlights how Lockheed Martin became a pivotal player in U.S. defense through pioneering aircraft like the SR-71 Blackbird and its contributions to technological advancements. The conversation emphasizes the dynamic between government contracts, the shifting perceptions of military spending, and the long-term implications of these developments on America's technological leadership and national security. The discussion addresses the challenges of adapting to new market needs and realities in a post-Cold War world while also critiquing the relationship between government interests and private contractors."})
 
 @app.route('/version', methods=['GET'])
