@@ -126,7 +126,7 @@ def summarize():
             1. At the top, write a summary that identifies the main takeaways of the video.
             2. Provide a chronological summary of the video, highlighting key points as they happen.
 
-            Here is the transcript: {ans}"""}
+            The title of the video is "{title}". Here is the transcript: {ans}"""}
             ]
         )
         summary = completion.choices[0].message.content
