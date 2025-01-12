@@ -8,12 +8,30 @@ import requests
 from apscheduler.schedulers.background import BackgroundScheduler
 import time
 import os
+import re
 
 app = Flask(__name__)
 CORS(app)
 RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
-
 client = OpenAI()
+
+
+
+#Functions
+def extract_video_id(url):
+    patterns = [
+        r'https://youtu.be/([a-zA-Z0-9_-]+)',  # For mobile format (youtu.be)
+        r'https://youtube.com/shorts/([a-zA-Z0-9_-]+)',  # For mobile shorts format
+        r'https://www.youtube.com/watch\?v=([a-zA-Z0-9_-]+)',  # For web format (watch?v=)
+        r'https://www.youtube.com/shorts/([a-zA-Z0-9_-]+)',  # For web shorts format
+    ]
+    
+    for pattern in patterns:
+        match = re.match(pattern, url)
+        if match:
+            return match.group(1)
+    
+    return None
 
 def ping_self():
     try:
@@ -28,11 +46,11 @@ def ping_self():
     except Exception as e:
         print(f"Error while pinging the server: {e}")
 
-
 scheduler = BackgroundScheduler()
 scheduler.add_job(func=ping_self, trigger="interval", minutes=14)
 scheduler.start()
 
+#Flask Api's
 @app.route('/get_title', methods=['GET'])
 def get_title():
     # Extract video URL from the query parameters
@@ -78,11 +96,10 @@ def summarize():
         data = request.get_json()
         url = data.get('url')
 
+        #TODO update frontend on what's happening
         print(f"\n\nReceived request for summarize:", url)
-        if not url:
-            return jsonify({"error": "YouTube URL is required"}), 400
-
-        video_id = url.replace('https://www.youtube.com/watch?v=', '')
+        
+        video_id = extract_video_id(url)
 
         #Get Title
         url = "https://yt-api.p.rapidapi.com/video/info"
