@@ -173,6 +173,8 @@ def roundRobinTranscript(video_id):
 
     # Call the selected function
     result = current_function(video_id)
+    print(result)
+
 
     # Update the index for the next round-robin call
     current_function_index = (current_function_index + 1) % len(transcript_functions)
