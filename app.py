@@ -14,6 +14,9 @@ CORS(app)
 RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
 client = OpenAI()
 
+# List of functions for getting transcripts
+transcript_functions = []
+
 
 
 #Functions
@@ -65,14 +68,17 @@ def get_video_title(video_id):
         print(f"Error extracting title: {e}")
         return None  # Or return an appropriate error message or value
 
-def get_video_transcript(video_id):
+
+
+
+def YoutubeTranscripts(video_id):
     rapid_api_url = "https://youtube-transcripts.p.rapidapi.com/youtube/transcript"
     headers = {
         "x-rapidapi-key": RAPIDAPI_KEY,
         "x-rapidapi-host": "youtube-transcripts.p.rapidapi.com"
     }
     params = {"videoId": video_id, "chunkSize": "500"}
-
+    print("1")
     try:
         # Make the request to the API
         response = requests.get(rapid_api_url, headers=headers, params=params)
@@ -90,6 +96,56 @@ def get_video_transcript(video_id):
     except requests.exceptions.RequestException as e:
         print(f"Request failed: {e}")
         return None  # Or return an appropriate error message or value
+
+def YoutubeTranscript(video_id):
+    print("2")
+    try:
+        # Construct the YouTube URL using the video_id
+        youtube_url = f"https://www.youtube.com/watch?v={video_id}"
+
+        # RapidAPI request setup
+        api_url = "https://youtube-transcript3.p.rapidapi.com/api/transcript-with-url"
+        querystring = {
+            "url": youtube_url,
+            "flat_text": "true",
+            "lang": "en"
+        }
+        headers = {
+            "x-rapidapi-key": RAPIDAPI_KEY,
+            "x-rapidapi-host": "youtube-transcript3.p.rapidapi.com"
+        }
+
+        # Make the request to RapidAPI
+        response = requests.get(api_url, headers=headers, params=querystring)
+
+        # Return the response from the RapidAPI call
+        if response.status_code == 200:
+            return jsonify(response.json())
+        else:
+            return jsonify({"error": "Failed to fetch transcript.", "details": response.text}), response.status_code
+
+    except Exception as e:
+        return jsonify({"error": "An error occurred.", "details": str(e)}), 500
+
+current_function_index = 0
+transcript_functions.append(YoutubeTranscripts)
+transcript_functions.append(YoutubeTranscript)
+
+def roundRobinTranscript(video_id):
+    global current_function_index
+
+    # Get the function to call based on the current index
+    current_function = transcript_functions[current_function_index]
+
+    # Call the selected function
+    result = current_function(video_id)
+
+    # Update the index for the next round-robin call
+    current_function_index = (current_function_index + 1) % len(transcript_functions)
+
+    return result
+
+
 
 def get_video_summary(title, transcript):
     try:
@@ -153,7 +209,7 @@ def summarize():
 
 
         # Get Transcript
-        transcript = get_video_transcript(video_id)
+        transcript = roundRobinTranscript(video_id)
         if transcript:
             print("Receieved Transcript")
         else:
