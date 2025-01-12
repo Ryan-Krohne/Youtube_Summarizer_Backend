@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from openai import OpenAI
-from youtube_transcript_api import YouTubeTranscriptApi
 import sys
 import pkg_resources
 import requests
@@ -135,44 +134,6 @@ scheduler.add_job(func=ping_self, trigger="interval", minutes=14)
 scheduler.start()
 
 #Flask Api's
-@app.route('/get_title', methods=['GET'])
-def get_title():
-    # Extract video URL from the query parameters
-    video_url = request.args.get("url")
-
-    if not video_url:
-        return jsonify({"error": "Video URL is required"}), 400
-
-    # Parse the video ID using replace
-    if video_url.startswith('https://www.youtube.com/watch?v='):
-        video_id = video_url.replace('https://www.youtube.com/watch?v=', '')
-    else:
-        return jsonify({"error": "Invalid YouTube URL format"}), 400
-
-    # RapidAPI endpoint and headers
-    url = "https://yt-api.p.rapidapi.com/video/info"
-    querystring = {"id": video_id}
-
-    headers = {
-        "x-rapidapi-key": RAPIDAPI_KEY,
-        "x-rapidapi-host": "yt-api.p.rapidapi.com"
-    }
-
-    try:
-        # Make the request to the API
-        response = requests.get(url, headers=headers, params=querystring)
-        response.raise_for_status()
-        data = response.json()
-
-        # Extract and return the title
-        if "title" in data:
-            return jsonify({"title": data["title"]})
-        else:
-            return jsonify({"error": "Title not found in the response"}), 404
-    except requests.exceptions.RequestException as e:
-        return jsonify({"error": str(e)}), 500
-
-
 @app.route('/summarize', methods=['POST'])
 def summarize():
     
@@ -220,48 +181,8 @@ def version():
         "python_version": sys.version,
         "flask_version": pkg_resources.get_distribution("flask").version,  # Corrected to get flask version
         "openai_version": pkg_resources.get_distribution("openai").version,
-        "youtube_transcript_api_version": pkg_resources.get_distribution("youtube-transcript-api").version,
-        "beautifulsoup_version": pkg_resources.get_distribution("beautifulsoup4").version  # Commented out
+        "beautifulsoup_version": pkg_resources.get_distribution("beautifulsoup4").version 
     })
-
-
-@app.route('/test-youtube', methods=['GET'])
-def test_youtube():
-    response = requests.get('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
-    return jsonify({"status": response.status_code, "content": response.text[:200]})
-
-
-@app.route('/get_transcript', methods=['GET'])
-def get_transcript():
-    print("1: Received GET request for transcript")
-    try:
-        # Select a random video URL
-        url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-        print(f"Selected video URL: {url}")
-
-        # Extract video ID
-        video_id = url.split("v=")[-1]
-        print(f"Extracted video ID: {video_id}")
-
-        # Fetch the transcript
-        try:
-            transcript = YouTubeTranscriptApi.get_transcript(video_id)
-        except Exception as e:
-            print(f"Error fetching transcript: {str(e)}")  # Log the error
-            return jsonify({"error": f"Could not retrieve a transcript for the video. Error: {str(e)}"}), 400
-
-        # Combine transcript into a single string
-        transcript_text = " ".join([x['text'] for x in transcript])
-        print("2: Successfully fetched transcript")
-
-        return jsonify({
-            "video_url": url,
-            "transcript": transcript_text
-        })
-
-    except Exception as e:
-        print(f"Unexpected error: {str(e)}")  # Log the error
-        return jsonify({"error": str(e)}), 500
 
 # Flask route to handle the ping
 @app.route("/ping")
@@ -272,8 +193,7 @@ def ping():
 # Flask home route
 @app.route("/")
 def home():
-    return "Flask app is running and pinging itself every 5 second!"
-
+    return "Flask app is running!"
 
 
 
