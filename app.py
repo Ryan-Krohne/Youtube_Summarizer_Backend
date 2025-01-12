@@ -98,33 +98,28 @@ def Youtube_Transcripts(video_id):
         return None  # Or return an appropriate error message or value
 
 #https://rapidapi.com/solid-api-solid-api-default/api/youtube-transcript3
-#this one is failing
 def Youtube_Transcript(video_id):
     print("1")
     try:
-        # Construct the YouTube URL using the video_id
-        youtube_url = f"https://www.youtube.com/watch?v={video_id}"
-
         # RapidAPI request setup
-        api_url = "https://youtube-transcript3.p.rapidapi.com/api/transcript-with-url"
-        querystring = {
-            "url": youtube_url,
-            "flat_text": "true",
-            "lang": "en"
-        }
+        url = "https://youtube-transcript3.p.rapidapi.com/api/transcript"
+
+        querystring = {"videoId": video_id}
+
         headers = {
             "x-rapidapi-key": RAPIDAPI_KEY,
             "x-rapidapi-host": "youtube-transcript3.p.rapidapi.com"
         }
 
-        # Make the request to RapidAPI
-        response = requests.get(api_url, headers=headers, params=querystring)
+        response = requests.get(url, headers=headers, params=querystring)
+    
+        transcript = response.json().get("transcript", [])
+        
+        # Extracting just the text from the transcript
+        text = [entry["text"] for entry in transcript]
+        
+        return text
 
-        # Return the response from the RapidAPI call
-        if response.status_code == 200:
-            return jsonify(response.json())
-        else:
-            return jsonify({"error": "Failed to fetch transcript.", "details": response.text}), response.status_code
 
     except Exception as e:
         return jsonify({"error": "An error occurred.", "details": str(e)}), 500
@@ -160,7 +155,7 @@ def Youtube_Transcripts_API(video_id):
 
 
 current_function_index = 0
-transcript_functions.append(Youtube_Transcripts)
+#transcript_functions.append(Youtube_Transcripts)
 transcript_functions.append(Youtube_Transcript)
 transcript_functions.append(Youtube_Transcripts_API)
 
@@ -192,10 +187,10 @@ def get_video_summary(title, transcript):
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": f"""
                 You are a helpful assistant. Summarize the following video transcript in two parts:
-                1. At the top, write a summary that identifies the main takeaways of the video.
-                2. Provide a chronological summary of the video, highlighting key points as they happen.
+                1. A short descrption of the video
+                2. Key points of the video in chronoligcal order
 
-                The title of the video is "{title}". Here is the transcript: {transcript}"""}
+                Here is the transcript: {transcript}"""}
             ]
         )
 
