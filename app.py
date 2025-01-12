@@ -33,6 +33,90 @@ def extract_video_id(url):
     
     return None
 
+def get_video_title(video_id):
+    url = "https://yt-api.p.rapidapi.com/video/info"
+    querystring = {"id": video_id}
+
+    headers = {
+        "x-rapidapi-key": RAPIDAPI_KEY,
+        "x-rapidapi-host": "yt-api.p.rapidapi.com"
+    }
+
+    try:
+        # Make the request to the API
+        response = requests.get(url, headers=headers, params=querystring)
+        response.raise_for_status()  # Raises HTTPError for bad responses (4xx, 5xx)
+        
+        # Parse the JSON response
+        data = response.json()
+
+        # Extract the title
+        title = data.get("title")
+        
+        if title is None:
+            raise ValueError("Title not found in the response data.")
+        
+        return title
+
+    except requests.exceptions.RequestException as e:
+        print(f"Request failed: {e}")
+        return None  # Or return an appropriate error message or value
+
+    except ValueError as e:
+        print(f"Error extracting title: {e}")
+        return None  # Or return an appropriate error message or value
+
+def get_video_transcript(video_id):
+    rapid_api_url = "https://youtube-transcripts.p.rapidapi.com/youtube/transcript"
+    headers = {
+        "x-rapidapi-key": RAPIDAPI_KEY,
+        "x-rapidapi-host": "youtube-transcripts.p.rapidapi.com"
+    }
+    params = {"videoId": video_id, "chunkSize": "500"}
+
+    try:
+        # Make the request to the API
+        response = requests.get(rapid_api_url, headers=headers, params=params)
+        response.raise_for_status()  # Raises HTTPError for bad responses (4xx, 5xx)
+
+        if response.status_code == 200:
+            transcript = [item["text"] for item in response.json().get("content", [])]
+            ans = " ".join(transcript)
+            print("Received Transcript")
+            return ans
+        else:
+            print("Error: Could not fetch transcript")
+            return None  # Or raise an exception if you want to handle it differently
+
+    except requests.exceptions.RequestException as e:
+        print(f"Request failed: {e}")
+        return None  # Or return an appropriate error message or value
+
+def get_video_summary(title, transcript):
+    try:
+        # Make the request to GPT-4 model for summarization
+        completion = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": f"""
+                You are a helpful assistant. Summarize the following video transcript in two parts:
+                1. At the top, write a summary that identifies the main takeaways of the video.
+                2. Provide a chronological summary of the video, highlighting key points as they happen.
+
+                The title of the video is "{title}". Here is the transcript: {transcript}"""}
+            ]
+        )
+
+        # Extract the summary from the response
+        summary = completion.choices[0].message.content
+        return summary
+
+    except Exception as e:
+        print(f"Error occurred while fetching the summary: {e}")
+        return None  # Or return an appropriate error message or value
+
+
 def ping_self():
     try:
         response = requests.get(
@@ -93,64 +177,32 @@ def get_title():
 def summarize():
     
     try:
+        #Get URL
         data = request.get_json()
         url = data.get('url')
-
-        #TODO update frontend on what's happening
         print(f"\n\nReceived request for summarize:", url)
-        
+
+        #Get Video ID
         video_id = extract_video_id(url)
 
+
         #Get Title
-        url = "https://yt-api.p.rapidapi.com/video/info"
-        querystring = {"id": video_id}
-
-        headers = {
-        "x-rapidapi-key": RAPIDAPI_KEY,
-        "x-rapidapi-host": "yt-api.p.rapidapi.com"
-        }
-
-        # Make the request to the API
-        response = requests.get(url, headers=headers, params=querystring)
-        response.raise_for_status()
-        data = response.json()
-
-        title=data.get("title")
+        title = get_video_title(video_id)
         print(f"Title:", title)
 
-        # Fetch transcript
-        rapid_api_url = "https://youtube-transcripts.p.rapidapi.com/youtube/transcript"
-        headers = {
-            "x-rapidapi-key": RAPIDAPI_KEY,
-            "x-rapidapi-host": "youtube-transcripts.p.rapidapi.com"
-        }
-        params = {"videoId": video_id, "chunkSize": "500"}
 
-        response = requests.get(rapid_api_url, headers=headers, params=params)
-        if response.status_code == 200:
-            transcript = [item["text"] for item in response.json().get("content", [])]
+        # Get Transcript
+        transcript = get_video_transcript(video_id)
+        if transcript:
+            print("Receieved Transcript")
         else:
-            return jsonify({"error": "Could not fetch transcript"}), 400
+            print("Failed to retrieve transcript.")
 
-        ans = " ".join(transcript)
 
-        print("Receieved Transcript")
-
-        completion = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": f"""
-            You are a helpful assistant. Summarize the following video transcript in two parts:
-            1. At the top, write a summary that identifies the main takeaways of the video.
-            2. Provide a chronological summary of the video, highlighting key points as they happen.
-
-            The title of the video is "{title}". Here is the transcript: {ans}"""}
-            ]
-        )
-        summary = completion.choices[0].message.content
-
+        # Get Summary
+        summary = get_video_summary(title, transcript)
         print("Returning Summary...")
+
         return jsonify({"title": title, "summary": summary})
 
     except Exception as e:
