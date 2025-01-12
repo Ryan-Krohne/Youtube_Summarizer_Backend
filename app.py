@@ -191,7 +191,8 @@ def roundRobinTranscript(video_id):
 
 
 
-def get_video_summary(title, transcript):
+def get_video_summary(transcript):
+    print("\n\nTALKING TO GPT RIGHT NOW!!!!!!\n\n")
     try:
         # Make the request to GPT-4 model for summarization
         completion = client.chat.completions.create(
@@ -202,12 +203,14 @@ def get_video_summary(title, transcript):
                 Provide a description and a chronological summary of the video. Format the response as:
                 Description: [Your description here]
                 Summary: [Your summary here]
+                Make the words "Description" and "Summary" bold.
                 Here is the transcript: {transcript}"""}
             ]
         )
 
         # Extract the summary from the response
         summary = completion.choices[0].message.content
+        print(f"Summary:", summary)
 
         # Extract description and summary using regex
         description_match = re.search(r"\*\*Description:\*\*(.*?)\*\*Summary:\*\*", summary, re.DOTALL)
@@ -275,7 +278,7 @@ def summarize():
 
 
         # Get Summary
-        response = get_video_summary(title, transcript)
+        response = get_video_summary(transcript)
         description = response["description"]
         chronological_summary = response["chronological_summary"]
 
