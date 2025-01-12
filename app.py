@@ -7,9 +7,11 @@ import pkg_resources
 import requests
 from apscheduler.schedulers.background import BackgroundScheduler
 import time
+import os
 
 app = Flask(__name__)
 CORS(app)
+RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
 
 client = OpenAI()
 
@@ -50,7 +52,7 @@ def get_title():
     querystring = {"id": video_id}
 
     headers = {
-        "x-rapidapi-key": "817820eb8cmsha7b606618240564p19021djsn6d68dd3cbd32",
+        "x-rapidapi-key": RAPIDAPI_KEY,
         "x-rapidapi-host": "yt-api.p.rapidapi.com"
     }
 
@@ -87,7 +89,7 @@ def summarize():
         querystring = {"id": video_id}
 
         headers = {
-        "x-rapidapi-key": "817820eb8cmsha7b606618240564p19021djsn6d68dd3cbd32",
+        "x-rapidapi-key": RAPIDAPI_KEY,
         "x-rapidapi-host": "yt-api.p.rapidapi.com"
         }
 
@@ -102,7 +104,7 @@ def summarize():
         # Fetch transcript
         rapid_api_url = "https://youtube-transcripts.p.rapidapi.com/youtube/transcript"
         headers = {
-            "x-rapidapi-key": "817820eb8cmsha7b606618240564p19021djsn6d68dd3cbd32",
+            "x-rapidapi-key": RAPIDAPI_KEY,
             "x-rapidapi-host": "youtube-transcripts.p.rapidapi.com"
         }
         params = {"videoId": video_id, "chunkSize": "500"}
@@ -160,24 +162,6 @@ def test_youtube():
     return jsonify({"status": response.status_code, "content": response.text[:200]})
 
 
-@app.route('/greet', methods=['GET'])
-def greet():
-    print("1: Received request")
-    
-    completion = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": """Hi, how are you doing?
-
-            """}
-            ]
-        )
-    summary = completion.choices[0].message.content
-
-    return jsonify({"summary": summary})
-
-
 @app.route('/get_transcript', methods=['GET'])
 def get_transcript():
     print("1: Received GET request for transcript")
@@ -227,8 +211,6 @@ def home():
 @app.route('/Youtube_Transcript', methods=['POST'])
 def Youtube_Transcript():
 
-    RAPIDAPI_KEY = "817820eb8cmsha7b606618240564p19021djsn6d68dd3cbd32"
-    RAPIDAPI_HOST = "youtube-transcript3.p.rapidapi.com"
     try:
         # Get JSON payload from the request
         data = request.get_json()
@@ -249,7 +231,7 @@ def Youtube_Transcript():
         }
         headers = {
             "x-rapidapi-key": RAPIDAPI_KEY,
-            "x-rapidapi-host": RAPIDAPI_HOST
+            "x-rapidapi-host": "youtube-transcript3.p.rapidapi.com"
         }
 
         # Make the request to RapidAPI
@@ -275,7 +257,7 @@ def Youtube_Transcripts_API():
     querystring = {"video_id": video_id, "language": language}
 
     headers = {
-        "x-rapidapi-key": "817820eb8cmsha7b606618240564p19021djsn6d68dd3cbd32",
+        "x-rapidapi-key": RAPIDAPI_KEY,
         "x-rapidapi-host": "youtube-transcripts-api.p.rapidapi.com"
     }
 
