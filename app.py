@@ -17,8 +17,6 @@ client = OpenAI()
 # List of functions for getting transcripts
 transcript_functions = []
 
-
-
 #Functions
 def extract_video_id(url):
     patterns = [
@@ -32,9 +30,9 @@ def extract_video_id(url):
         match = re.match(pattern, url)
         if match:
             return match.group(1)
-    
     return None
 
+#https://rapidapi.com/ytjar/api/yt-api
 def get_video_title(video_id):
     url = "https://yt-api.p.rapidapi.com/video/info"
     querystring = {"id": video_id}
@@ -67,7 +65,6 @@ def get_video_title(video_id):
     except ValueError as e:
         print(f"Error extracting title: {e}")
         return None  # Or return an appropriate error message or value
-
 
 
 #https://rapidapi.com/8v2FWW4H6AmKw89/api/youtube-transcripts
