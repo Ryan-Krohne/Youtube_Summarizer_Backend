@@ -150,11 +150,26 @@ def Youtube_Transcripts_API(video_id):
     else:
         return {"error": "Failed to fetch transcript", "status_code": response.status_code}
 
+#https://rapidapi.com/michelemaccini/api/youtubetextconverter
+def YouTubeTextConverter(video_id):
+    print("3")
+    url = "https://youtubetextconverter.p.rapidapi.com/YouTubeCaptions.asp"
+
+    querystring = {"vapi": video_id}
+
+    headers = {
+        "x-rapidapi-key": RAPIDAPI_KEY,
+        "x-rapidapi-host": "youtubetextconverter.p.rapidapi.com"
+    }
+
+    response = requests.get(url, headers=headers, params=querystring)
+    return (response.text)
 
 current_transcript_index = 0
 #transcript_functions.append(Youtube_Transcripts)
 transcript_functions.append(Youtube_Transcript)
 transcript_functions.append(Youtube_Transcripts_API)
+transcript_functions.append(YouTubeTextConverter)
 
 
 def roundRobinTranscript(video_id):
@@ -163,13 +178,14 @@ def roundRobinTranscript(video_id):
     # Get the function to call based on the current index
     current_function = transcript_functions[current_transcript_index]
 
-    # Call the selected function
-    result = current_function(video_id)
-    print(result)
-
 
     # Update the index for the next round-robin call
     current_transcript_index = (current_transcript_index + 1) % len(transcript_functions)
+
+
+    # Call the selected function
+    result = current_function(video_id)
+    print(result)
 
     return result
 
