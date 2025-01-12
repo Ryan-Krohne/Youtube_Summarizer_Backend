@@ -70,15 +70,15 @@ def get_video_title(video_id):
 
 
 
-
-def YoutubeTranscripts(video_id):
+#https://rapidapi.com/8v2FWW4H6AmKw89/api/youtube-transcripts
+def Youtube_Transcripts(video_id):
     rapid_api_url = "https://youtube-transcripts.p.rapidapi.com/youtube/transcript"
     headers = {
         "x-rapidapi-key": RAPIDAPI_KEY,
         "x-rapidapi-host": "youtube-transcripts.p.rapidapi.com"
     }
     params = {"videoId": video_id, "chunkSize": "500"}
-    print("1")
+    print("0")
     try:
         # Make the request to the API
         response = requests.get(rapid_api_url, headers=headers, params=params)
@@ -97,8 +97,10 @@ def YoutubeTranscripts(video_id):
         print(f"Request failed: {e}")
         return None  # Or return an appropriate error message or value
 
-def YoutubeTranscript(video_id):
-    print("2")
+#https://rapidapi.com/solid-api-solid-api-default/api/youtube-transcript3
+#this one is failing
+def Youtube_Transcript(video_id):
+    print("1")
     try:
         # Construct the YouTube URL using the video_id
         youtube_url = f"https://www.youtube.com/watch?v={video_id}"
@@ -127,9 +129,41 @@ def YoutubeTranscript(video_id):
     except Exception as e:
         return jsonify({"error": "An error occurred.", "details": str(e)}), 500
 
+#https://rapidapi.com/timetravellershq/api/youtube-transcripts-api
+def Youtube_Transcripts_API(video_id):
+    url = "https://youtube-transcripts-api.p.rapidapi.com/api/transcript/"
+    print("2")
+    querystring = {"video_id": video_id, "language": 'en'}
+
+    headers = {
+        "x-rapidapi-key": RAPIDAPI_KEY,
+        "x-rapidapi-host": "youtube-transcripts-api.p.rapidapi.com"
+    }
+
+    response = requests.get(url, headers=headers, params=querystring)
+
+    if response.status_code == 200:
+        transcript = [item['text'] for item in response.json().get('content', [])]
+
+        # Remove the first element, and the last two elements
+        if len(transcript) > 2:
+            transcript = transcript[1:-2]
+        
+        # Modify the last element to remove its first and last characters
+        if len(transcript) > 0:
+            transcript[-1] = transcript[-1][1:-1]
+
+        # Join the lines into a single string
+        return " ".join(transcript)
+    else:
+        return {"error": "Failed to fetch transcript", "status_code": response.status_code}
+
+
 current_function_index = 0
-transcript_functions.append(YoutubeTranscripts)
-transcript_functions.append(YoutubeTranscript)
+transcript_functions.append(Youtube_Transcripts)
+transcript_functions.append(Youtube_Transcript)
+transcript_functions.append(Youtube_Transcripts_API)
+
 
 def roundRobinTranscript(video_id):
     global current_function_index
@@ -213,7 +247,7 @@ def summarize():
         if transcript:
             print("Receieved Transcript")
         else:
-            print("Failed to retrieve transcript.")
+            raise ValueError("Transcript retrieval failed.")
 
 
         # Get Summary
@@ -250,80 +284,6 @@ def ping():
 @app.route("/")
 def home():
     return "Flask app is running!"
-
-
-
-@app.route('/Youtube_Transcript', methods=['POST'])
-def Youtube_Transcript():
-
-    try:
-        # Get JSON payload from the request
-        data = request.get_json()
-        youtube_url = data.get("url")
-        flat_text = data.get("flat_text", "true")
-        lang = data.get("lang", "en")
-
-        # Validate the required URL parameter
-        if not youtube_url:
-            return jsonify({"error": "The 'url' field is required."}), 400
-
-        # RapidAPI request setup
-        api_url = "https://youtube-transcript3.p.rapidapi.com/api/transcript-with-url"
-        querystring = {
-            "url": youtube_url,
-            "flat_text": flat_text,
-            "lang": lang
-        }
-        headers = {
-            "x-rapidapi-key": RAPIDAPI_KEY,
-            "x-rapidapi-host": "youtube-transcript3.p.rapidapi.com"
-        }
-
-        # Make the request to RapidAPI
-        response = requests.get(api_url, headers=headers, params=querystring)
-
-        # Return the response from the RapidAPI call
-        if response.status_code == 200:
-            return jsonify(response.json())
-        else:
-            return jsonify({"error": "Failed to fetch transcript.", "details": response.text}), response.status_code
-
-    except Exception as e:
-        return jsonify({"error": "An error occurred.", "details": str(e)}), 500
-
-
-@app.route('/Youtube_Transcripts_API', methods=['GET'])
-def Youtube_Transcripts_API():
-    video_id = request.args.get('video_id', default='dQw4w9WgXcQ', type=str)
-    language = request.args.get('language', default='en', type=str)
-
-    url = "https://youtube-transcripts-api.p.rapidapi.com/api/transcript/"
-
-    querystring = {"video_id": video_id, "language": language}
-
-    headers = {
-        "x-rapidapi-key": RAPIDAPI_KEY,
-        "x-rapidapi-host": "youtube-transcripts-api.p.rapidapi.com"
-    }
-
-    response = requests.get(url, headers=headers, params=querystring)
-
-    if response.status_code == 200:
-        transcript = [item['text'] for item in response.json().get('content', [])]
-
-        # Remove the first element, and the last two elements
-        if len(transcript) > 2:
-            transcript = transcript[1:-2]
-        
-        # Modify the last element to remove its first and last characters
-        if len(transcript) > 0:
-            transcript[-1] = transcript[-1][1:-1]
-
-        # Join the lines into a single string
-        return " ".join(transcript)
-    else:
-        return jsonify({"error": "Failed to fetch transcript", "status_code": response.status_code}), response.status_code
-
 
 
 if __name__ == '__main__':
