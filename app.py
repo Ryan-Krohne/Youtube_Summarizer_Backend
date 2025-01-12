@@ -154,17 +154,17 @@ def Youtube_Transcripts_API(video_id):
         return {"error": "Failed to fetch transcript", "status_code": response.status_code}
 
 
-current_function_index = 0
+current_transcript_index = 0
 #transcript_functions.append(Youtube_Transcripts)
 transcript_functions.append(Youtube_Transcript)
 transcript_functions.append(Youtube_Transcripts_API)
 
 
 def roundRobinTranscript(video_id):
-    global current_function_index
+    global current_transcript_index
 
     # Get the function to call based on the current index
-    current_function = transcript_functions[current_function_index]
+    current_function = transcript_functions[current_transcript_index]
 
     # Call the selected function
     result = current_function(video_id)
@@ -172,7 +172,7 @@ def roundRobinTranscript(video_id):
 
 
     # Update the index for the next round-robin call
-    current_function_index = (current_function_index + 1) % len(transcript_functions)
+    current_transcript_index = (current_transcript_index + 1) % len(transcript_functions)
 
     return result
 
@@ -274,7 +274,6 @@ def version():
 # Flask route to handle the ping
 @app.route("/ping")
 def ping():
-    print("Pong! Server is alive!")
     return "Pong! Server is alive!", 200
 
 # Flask home route
