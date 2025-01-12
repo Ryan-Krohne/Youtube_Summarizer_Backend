@@ -221,5 +221,83 @@ def ping():
 def home():
     return "Flask app is running and pinging itself every 5 second!"
 
+
+
+
+@app.route('/Youtube_Transcript', methods=['POST'])
+def Youtube_Transcript():
+
+    RAPIDAPI_KEY = "817820eb8cmsha7b606618240564p19021djsn6d68dd3cbd32"
+    RAPIDAPI_HOST = "youtube-transcript3.p.rapidapi.com"
+    try:
+        # Get JSON payload from the request
+        data = request.get_json()
+        youtube_url = data.get("url")
+        flat_text = data.get("flat_text", "true")
+        lang = data.get("lang", "en")
+
+        # Validate the required URL parameter
+        if not youtube_url:
+            return jsonify({"error": "The 'url' field is required."}), 400
+
+        # RapidAPI request setup
+        api_url = "https://youtube-transcript3.p.rapidapi.com/api/transcript-with-url"
+        querystring = {
+            "url": youtube_url,
+            "flat_text": flat_text,
+            "lang": lang
+        }
+        headers = {
+            "x-rapidapi-key": RAPIDAPI_KEY,
+            "x-rapidapi-host": RAPIDAPI_HOST
+        }
+
+        # Make the request to RapidAPI
+        response = requests.get(api_url, headers=headers, params=querystring)
+
+        # Return the response from the RapidAPI call
+        if response.status_code == 200:
+            return jsonify(response.json())
+        else:
+            return jsonify({"error": "Failed to fetch transcript.", "details": response.text}), response.status_code
+
+    except Exception as e:
+        return jsonify({"error": "An error occurred.", "details": str(e)}), 500
+
+
+@app.route('/Youtube_Transcripts_API', methods=['GET'])
+def Youtube_Transcripts_API():
+    video_id = request.args.get('video_id', default='dQw4w9WgXcQ', type=str)
+    language = request.args.get('language', default='en', type=str)
+
+    url = "https://youtube-transcripts-api.p.rapidapi.com/api/transcript/"
+
+    querystring = {"video_id": video_id, "language": language}
+
+    headers = {
+        "x-rapidapi-key": "817820eb8cmsha7b606618240564p19021djsn6d68dd3cbd32",
+        "x-rapidapi-host": "youtube-transcripts-api.p.rapidapi.com"
+    }
+
+    response = requests.get(url, headers=headers, params=querystring)
+
+    if response.status_code == 200:
+        transcript = [item['text'] for item in response.json().get('content', [])]
+
+        # Remove the first element, and the last two elements
+        if len(transcript) > 2:
+            transcript = transcript[1:-2]
+        
+        # Modify the last element to remove its first and last characters
+        if len(transcript) > 0:
+            transcript[-1] = transcript[-1][1:-1]
+
+        # Join the lines into a single string
+        return " ".join(transcript)
+    else:
+        return jsonify({"error": "Failed to fetch transcript", "status_code": response.status_code}), response.status_code
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)
