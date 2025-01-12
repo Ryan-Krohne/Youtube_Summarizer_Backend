@@ -199,17 +199,31 @@ def get_video_summary(title, transcript):
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": f"""
-                You are a helpful assistant. Summarize the following video transcript in two parts:
-                1. A short descrption of the video
-                2. Key points of the video in chronoligcal order
-
+                Provide a description and a chronological summary of the video. Format the response as:
+                Description: [Your description here]
+                Summary: [Your summary here]
                 Here is the transcript: {transcript}"""}
             ]
         )
 
         # Extract the summary from the response
         summary = completion.choices[0].message.content
-        return summary
+
+        # Extract description and summary using regex
+        description_match = re.search(r"\*\*Description:\*\*(.*?)\*\*Summary:\*\*", summary, re.DOTALL)
+        summary_match = re.search(r"\*\*Summary:\*\*(.*)", summary, re.DOTALL)
+
+        description = description_match.group(1).strip() if description_match else ""
+        chronological_summary = summary_match.group(1).strip() if summary_match else ""
+
+        # Print or use the extracted parts
+        print("\nDescription:", description)
+        print("\nSummary:", chronological_summary)
+
+        return {
+            "description": description,
+            "chronological_summary": chronological_summary
+        }
 
     except Exception as e:
         print(f"Error occurred while fetching the summary: {e}")
@@ -261,10 +275,19 @@ def summarize():
 
 
         # Get Summary
-        summary = get_video_summary(title, transcript)
-        print("Returning Summary...")
+        response = get_video_summary(title, transcript)
+        description = response["description"]
+        chronological_summary = response["chronological_summary"]
 
-        return jsonify({"title": title, "summary": summary})
+        print("Returning Summary...")
+        print("Description:", description)
+        print("Chronological Summary:", chronological_summary)
+
+        return jsonify({
+            "title": title,
+            "description": description,
+            "chronological_summary": chronological_summary
+        })
 
     except Exception as e:
         print(f"Unexpected error: {str(e)}")
@@ -273,7 +296,29 @@ def summarize():
 @app.route('/testing', methods=['POST'])
 def testing():
     time.sleep(5)
-    return jsonify({"title": "how to run fast", "summary": "###The **video** discusses #the extensive history of Lockheed Martin, focusing on two major narratives: the Skunk Works and its innovative achievements, particularly in aerospace, and the influence of the military-industrial complex on American society and defense policies. It highlights how Lockheed Martin became a pivotal player in U.S. defense through pioneering aircraft like the SR-71 Blackbird and its contributions to technological advancements. The conversation emphasizes the dynamic between government contracts, the shifting perceptions of military spending, and the long-term implications of these developments on America's technological leadership and national security. The discussion addresses the challenges of adapting to new market needs and realities in a post-Cold War world while also critiquing the relationship between government interests and private contractors."})
+    
+    # Mock data for description and summary
+    description = (
+        "The video discusses the extensive history of Lockheed Martin, focusing on two major narratives: "
+        "the Skunk Works and its innovative achievements, particularly in aerospace, and the influence of the "
+        "military-industrial complex on American society and defense policies. It highlights how Lockheed Martin "
+        "became a pivotal player in U.S. defense through pioneering aircraft like the SR-71 Blackbird and its "
+        "contributions to technological advancements."
+    )
+    chronological_summary = (
+        "1. **Introduction:** Overview of Lockheed Martin's history and significance.\n"
+        "2. **Skunk Works:** Discussion on groundbreaking aerospace innovations like the SR-71 Blackbird.\n"
+        "3. **Military-Industrial Complex:** Examination of the relationship between government contracts and private contractors.\n"
+        "4. **Post-Cold War Challenges:** Analysis of adapting to new market needs and realities.\n"
+        "5. **Conclusion:** Reflection on Lockheed Martin's role in shaping U.S. defense and technological leadership."
+    )
+    
+    # Return as JSON
+    return jsonify({
+        "title": "The History of Lockheed Martin",
+        "description": description,
+        "chronological_summary": chronological_summary
+    })
 
 @app.route('/version', methods=['GET'])
 def version():
