@@ -302,11 +302,7 @@ def testing():
     
     # Mock data for description and summary
     description = (
-        "The video discusses the extensive history of Lockheed Martin, focusing on two major narratives: "
-        "the Skunk Works and its innovative achievements, particularly in aerospace, and the influence of the "
-        "military-industrial complex on American society and defense policies. It highlights how Lockheed Martin "
-        "became a pivotal player in U.S. defense through pioneering aircraft like the SR-71 Blackbird and its "
-        "contributions to technological advancements."
+        "This video shares five fundamental rules of content creation that the speaker has implemented to grow his personal brand to over 3 million followers and achieve over 100 million views monthly. It delves into strategic advice for building a personal brand through consistent content creation, highlighting the importance of authenticity, systems, and sharing personal experiences."
     )
     chronological_summary = (
         "1. **Introduction:** Overview of Lockheed Martin's history and significance.\n"
