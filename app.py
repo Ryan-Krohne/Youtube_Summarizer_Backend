@@ -236,7 +236,7 @@ def get_video_summary(transcript):
 def ping_self():
     try:
         response = requests.get(
-            "https://renderbackend-8hhs.onrender.com/ping",  # Use the deployed URL
+            "https://renderbackend-xfh6.onrender.com/ping",  # Use the deployed URL
             headers={"User-Agent": "Flask-Ping-Bot"}  # Add a User-Agent header
         )
         if response.status_code == 200:
