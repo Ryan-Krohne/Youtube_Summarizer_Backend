@@ -200,10 +200,12 @@ def get_video_summary(transcript):
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": f"""
-                Provide a description and a chronological summary of the video. Format the response as:
+                Provide a description and key points of the video. Format the response as:
                 Description: [Your description here]
-                Summary: [Your summary here]
-                Make the words "Description" and "Summary" bold.
+                Key Points: [Your key points here]
+                 
+                Make the words "Description" and "Key Points" bold.
+                Do not use numbers to order the key points, use a dash
                 Here is the transcript: {transcript}"""}
             ]
         )
@@ -212,20 +214,20 @@ def get_video_summary(transcript):
         summary = completion.choices[0].message.content
         print(f"Summary:", summary)
 
-        # Extract description and summary using regex
-        description_match = re.search(r"\*\*Description:\*\*(.*?)\*\*Summary:\*\*", summary, re.DOTALL)
-        summary_match = re.search(r"\*\*Summary:\*\*(.*)", summary, re.DOTALL)
+        # Extract description and key points using regex
+        description_match = re.search(r"\*\*Description:\*\*(.*?)\*\*Key Points:\*\*", summary, re.DOTALL)
+        key_points_match = re.search(r"\*\*Key Points:\*\*(.*)", summary, re.DOTALL)
 
         description = description_match.group(1).strip() if description_match else ""
-        chronological_summary = summary_match.group(1).strip() if summary_match else ""
+        key_points = key_points_match.group(1).strip() if key_points_match else ""
 
         # Print or use the extracted parts
         print("\nDescription:", description)
-        print("\nSummary:", chronological_summary)
+        print("\nKey Points:", key_points)
 
         return {
             "description": description,
-            "chronological_summary": chronological_summary
+            "key_points": key_points
         }
 
     except Exception as e:
@@ -280,16 +282,16 @@ def summarize():
         # Get Summary
         response = get_video_summary(transcript)
         description = response["description"]
-        chronological_summary = response["chronological_summary"]
+        key_points = response["key_points"]
 
         print("Returning Summary...")
         print("Description:", description)
-        print("Chronological Summary:", chronological_summary)
+        print("Key Points:", key_points)
 
         return jsonify({
             "title": title,
             "description": description,
-            "chronological_summary": chronological_summary
+            "key_points": key_points
         })
 
     except Exception as e:
