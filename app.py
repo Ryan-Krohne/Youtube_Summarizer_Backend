@@ -200,13 +200,24 @@ def get_video_summary(transcript):
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": f"""
-                Provide a description and key points of the video. Format the response as:
-                Description: [Your description here]
-                Key Points: [Your key points here]
+                 Provide a detailed summary of the video transcript below. 
+                 Format the response as follows:\n\n
+
+                 **Description:**\n
+                 [Provide a concise and engaging description of the video's main content here.]\n\n
+
+                 **Key Points:**\n- 
+                 **[Subheading for the key point]**\n  
+                 [Explanation of the subheading or supporting details]\n  
+                 [Additional explanation if needed]\n- 
+                 **[Another subheading for a key point]**\n  
+                 [Explanation of this subheading]\n  
+                 [Supporting details]\n\nPlease ensure:\n- 
                  
-                Make the words "Description" and "Key Points" bold.
-                Do not use numbers to order the key points, use a dash
-                Here is the transcript: {transcript}"""}
+                 The words 'Description' and 'Key Points' are bold.\n- 
+                 Each key point has a general subheading followed by detailed explanations.\n- 
+                 Do not use numbers to order the key points; use a dash instead.\n\n
+                 Here is the transcript: {transcript}"""}
             ]
         )
 
