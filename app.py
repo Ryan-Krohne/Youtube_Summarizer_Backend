@@ -206,7 +206,7 @@ def get_video_summary(transcript):
                  **Description:**\n
                  [Provide a concise and engaging description of the video's main content here.]\n\n
 
-                 **Key Points:**\n- 
+                 **Key Points:**\n
                  **[Subheading for the key point]**\n  
                  [Explanation of the subheading or supporting details]\n  
                  [Additional explanation if needed]\n- 
