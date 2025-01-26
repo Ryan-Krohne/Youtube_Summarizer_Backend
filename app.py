@@ -306,7 +306,7 @@ def testing():
     description = (
         "This video shares five fundamental rules of content creation that the speaker has implemented to grow his personal brand to over 3 million followers and achieve over 100 million views monthly. It delves into strategic advice for building a personal brand through consistent content creation, highlighting the importance of authenticity, systems, and sharing personal experiences."
     )
-    chronological_summary = (
+    key_points = (
         "1. **Introduction:** Overview of Lockheed Martin's history and significance.\n"
         "2. **Skunk Works:** Discussion on groundbreaking aerospace innovations like the SR-71 Blackbird.\n"
         "3. **Military-Industrial Complex:** Examination of the relationship between government contracts and private contractors.\n"
@@ -318,7 +318,7 @@ def testing():
     return jsonify({
         "title": "The History of Lockheed Martin",
         "description": description,
-        "chronological_summary": chronological_summary
+        "key_points": key_points
     })
 
 @app.route('/version', methods=['GET'])
