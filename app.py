@@ -8,6 +8,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import time
 import os
 import re
+import xml.etree.ElementTree as ET
 
 app = Flask(__name__)
 CORS(app)
@@ -351,6 +352,40 @@ def ping():
 @app.route("/")
 def home():
     return "Flask app is running!"
+
+
+@app.route('/get-transcript', methods=['GET'])
+def get_transcript():
+# URL of the YouTube timed text (XML transcript)
+    url = "https://www.youtube.com/api/timedtext?v=dQw4w9WgXcQ&ei=qkqaZ62WFaCK6dsPpZi9yQ4&caps=asr&opi=112496729&xoaf=5&xosf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1738190106&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=52354CB8B8F6D35C265EC8FE44CFA9F047ADAFC5.B09A7BBCEB604A4075FFB22DA13B9C8F14406FFA&key=yt8&kind=asr&lang=en&fmt=srv1"
+
+    # Fetch the XML data from the URL
+    response = requests.get(url)
+
+    # Check if the request was successful
+    if response.status_code == 200:
+        # Print the raw XML content directly to the terminal for debugging
+        print("Raw XML Response:")
+        print(response.text)  # This will print the raw XML response to the console
+
+        # Parse the XML data
+        try:
+            root = ET.fromstring(response.text)
+            
+            # Check the root and first few elements to understand the structure
+            print("Root Element:", root.tag)
+            for child in root:
+                print("Child Element:", child.tag, "with text:", child.text)
+            
+            # Extract and combine the text content
+            text = ' '.join([elem.text for elem in root.iter() if elem.text])  # Iterate through all elements
+            
+            # Return the extracted text as a JSON response
+            return jsonify({"transcript": text})
+        except Exception as e:
+            return jsonify({"error": f"Error parsing XML: {str(e)}"}), 500
+    else:
+        return jsonify({"error": f"Failed to retrieve the XML data. Status code: {response.status_code}"}), 500
 
 
 if __name__ == '__main__':
