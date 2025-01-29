@@ -68,6 +68,48 @@ def get_video_title(video_id):
         return None  # Or return an appropriate error message or value
 
 
+#https://rapidapi.com/ytjar/api/yt-api
+def get_video_title_and_url(video_id):
+    url = "https://yt-api.p.rapidapi.com/video/info"
+    headers = {
+        "x-rapidapi-key": RAPIDAPI_KEY,
+        "x-rapidapi-host": "yt-api.p.rapidapi.com"
+    }
+    params = {"id": video_id}
+
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+        data = response.json()
+        title = data["title"]
+
+        subtitles_data = data.get('subtitles', {}).get('subtitles', [])
+        for subtitle in subtitles_data:
+            if subtitle.get('languageName') == 'English' or subtitle.get('languageCode') == 'en':
+                subs = subtitle.get('url')
+                return [title, subs]
+
+        return [title, None]
+    except (requests.exceptions.RequestException, KeyError):
+        return None
+
+def get_transcript_from_xml_url(xml_url):
+  try:
+    response = requests.get(xml_url)
+
+    if response.status_code == 200:
+      root = ET.fromstring(response.text)
+
+      text = ' '.join([elem.text for elem in root.iter() if elem.text])
+
+      print(text)
+      return {"transcript": text}
+    else:
+      return ""
+  except (requests.exceptions.RequestException, ET.ParseError) as e:
+    return {"error": f"Error processing XML: {str(e)}"}
+
+
 #https://rapidapi.com/8v2FWW4H6AmKw89/api/youtube-transcripts
 def Youtube_Transcripts(video_id):
     rapid_api_url = "https://youtube-transcripts.p.rapidapi.com/youtube/transcript"
@@ -264,7 +306,7 @@ scheduler = BackgroundScheduler()
 scheduler.add_job(func=ping_self, trigger="interval", minutes=14)
 scheduler.start()
 
-#Flask Api's
+#-------------------------------------------------- Flask Api's --------------------------------------------------
 @app.route('/summarize', methods=['POST'])
 def summarize():
     
@@ -278,34 +320,55 @@ def summarize():
         video_id = extract_video_id(url)
         print(f"ID: "+video_id)
 
+        #500 requests/day
+        title, xml_url = get_video_title_and_url(video_id)
+        print(title, xml_url)
+        transcript1=get_transcript_from_xml_url(xml_url)
+        print(f"TRANSCRIPT:",transcript1)
 
-        #Get Title
-        title = get_video_title(video_id)
-        print(f"Title:", title)
+        if transcript1:
+            print("DOING XML WAY")
+            
+            # Get Summary
+            response = get_video_summary(transcript1)
+            description = response["description"]
+            key_points = response["key_points"]
 
+            print("Returning Summary...")
+            print("Description:", description)
+            print("Key Points:", key_points)
 
-        # Get Transcript
-        transcript = roundRobinTranscript(video_id)
-        if transcript:
-            print("Receieved Transcript")
+            return jsonify({
+                "title": title,
+                "description": description,
+                "key_points": key_points
+            })
+
         else:
-            raise ValueError("Transcript retrieval failed.")
+            print("XML FAIL")
+
+            # Get Transcript
+            transcript = roundRobinTranscript(video_id)
+            if transcript:
+                print("Receieved Transcript")
+            else:
+                raise ValueError("Transcript retrieval failed.")
 
 
-        # Get Summary
-        response = get_video_summary(transcript)
-        description = response["description"]
-        key_points = response["key_points"]
+            # Get Summary
+            response = get_video_summary(transcript)
+            description = response["description"]
+            key_points = response["key_points"]
 
-        print("Returning Summary...")
-        print("Description:", description)
-        print("Key Points:", key_points)
+            print("Returning Summary...")
+            print("Description:", description)
+            print("Key Points:", key_points)
 
-        return jsonify({
-            "title": title,
-            "description": description,
-            "key_points": key_points
-        })
+            return jsonify({
+                "title": title,
+                "description": description,
+                "key_points": key_points
+            })
 
     except Exception as e:
         print(f"Unexpected error: {str(e)}")
