@@ -167,7 +167,7 @@ def YouTubeTextConverter(video_id):
 
 current_transcript_index = 0
 #transcript_functions.append(Youtube_Transcripts)
-transcript_functions.append(Youtube_Transcript)
+#transcript_functions.append(Youtube_Transcript)
 transcript_functions.append(Youtube_Transcripts_API)
 transcript_functions.append(YouTubeTextConverter)
 
@@ -275,6 +275,7 @@ def summarize():
 
         #Get Video ID
         video_id = extract_video_id(url)
+        print(f"ID: "+video_id)
 
 
         #Get Title
