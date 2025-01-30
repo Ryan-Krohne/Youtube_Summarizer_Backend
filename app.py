@@ -21,14 +21,15 @@ transcript_functions = []
 #Functions
 def extract_video_id(url):
     patterns = [
-        r'https://youtu.be/([a-zA-Z0-9_-]+)',  # For mobile format (youtu.be)
-        r'https://youtube.com/shorts/([a-zA-Z0-9_-]+)',  # For mobile shorts format
-        r'https://www.youtube.com/watch\?v=([a-zA-Z0-9_-]+)',  # For web format (watch?v=)
-        r'https://www.youtube.com/shorts/([a-zA-Z0-9_-]+)',  # For web shorts format
+        r'youtu\.be/([a-zA-Z0-9_-]+)',
+        r'youtube\.com/shorts/([a-zA-Z0-9_-]+)',
+        r'youtube\.com/watch\?v=([a-zA-Z0-9_-]+)',
+        r'm\.youtube\.com/watch\?v=([a-zA-Z0-9_-]+)',
+        r'youtube\.com/embed/([a-zA-Z0-9_-]+)',
     ]
     
     for pattern in patterns:
-        match = re.match(pattern, url)
+        match = re.search(pattern, url)
         if match:
             return match.group(1)
     return None
@@ -44,14 +45,11 @@ def get_video_title(video_id):
     }
 
     try:
-        # Make the request to the API
         response = requests.get(url, headers=headers, params=querystring)
-        response.raise_for_status()  # Raises HTTPError for bad responses (4xx, 5xx)
+        response.raise_for_status()
         
-        # Parse the JSON response
         data = response.json()
 
-        # Extract the title
         title = data.get("title")
         
         if title is None:
@@ -61,11 +59,11 @@ def get_video_title(video_id):
 
     except requests.exceptions.RequestException as e:
         print(f"Request failed: {e}")
-        return None  # Or return an appropriate error message or value
+        return None
 
     except ValueError as e:
         print(f"Error extracting title: {e}")
-        return None  # Or return an appropriate error message or value
+        return None
 
 
 #https://rapidapi.com/ytjar/api/yt-api
@@ -120,9 +118,8 @@ def Youtube_Transcripts(video_id):
     params = {"videoId": video_id, "chunkSize": "500"}
     print("0")
     try:
-        # Make the request to the API
         response = requests.get(rapid_api_url, headers=headers, params=params)
-        response.raise_for_status()  # Raises HTTPError for bad responses (4xx, 5xx)
+        response.raise_for_status()
 
         if response.status_code == 200:
             transcript = [item["text"] for item in response.json().get("content", [])]
@@ -131,17 +128,16 @@ def Youtube_Transcripts(video_id):
             return ans
         else:
             print("Error: Could not fetch transcript")
-            return None  # Or raise an exception if you want to handle it differently
+            return None
 
     except requests.exceptions.RequestException as e:
         print(f"Request failed: {e}")
-        return None  # Or return an appropriate error message or value
+        return None
 
 #https://rapidapi.com/solid-api-solid-api-default/api/youtube-transcript3
 def Youtube_Transcript(video_id):
     print("1")
     try:
-        # RapidAPI request setup
         url = "https://youtube-transcript3.p.rapidapi.com/api/transcript"
 
         querystring = {"videoId": video_id}
@@ -155,7 +151,6 @@ def Youtube_Transcript(video_id):
     
         transcript = response.json().get("transcript", [])
         
-        # Extracting just the text from the transcript
         text = [entry["text"] for entry in transcript]
         
         return text
@@ -180,15 +175,12 @@ def Youtube_Transcripts_API(video_id):
     if response.status_code == 200:
         transcript = [item['text'] for item in response.json().get('content', [])]
 
-        # Remove the first element, and the last two elements
         if len(transcript) > 2:
             transcript = transcript[1:-2]
         
-        # Modify the last element to remove its first and last characters
         if len(transcript) > 0:
             transcript[-1] = transcript[-1][1:-1]
 
-        # Join the lines into a single string
         return " ".join(transcript)
     else:
         return {"error": "Failed to fetch transcript", "status_code": response.status_code}
@@ -218,15 +210,10 @@ transcript_functions.append(YouTubeTextConverter)
 def roundRobinTranscript(video_id):
     global current_transcript_index
 
-    # Get the function to call based on the current index
     current_function = transcript_functions[current_transcript_index]
 
-
-    # Update the index for the next round-robin call
     current_transcript_index = (current_transcript_index + 1) % len(transcript_functions)
 
-
-    # Call the selected function
     result = current_function(video_id)
     print(result)
 
@@ -237,7 +224,6 @@ def roundRobinTranscript(video_id):
 def get_video_summary(transcript):
     print("\n\nTALKING TO GPT RIGHT NOW!!!!!!\n\n")
     try:
-        # Make the request to GPT-4 model for summarization
         completion = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -264,18 +250,15 @@ def get_video_summary(transcript):
             ]
         )
 
-        # Extract the summary from the response
         summary = completion.choices[0].message.content
         print(f"Summary:", summary)
 
-        # Extract description and key points using regex
         description_match = re.search(r"\*\*Description:\*\*(.*?)\*\*Key Points:\*\*", summary, re.DOTALL)
         key_points_match = re.search(r"\*\*Key Points:\*\*(.*)", summary, re.DOTALL)
 
         description = description_match.group(1).strip() if description_match else ""
         key_points = key_points_match.group(1).strip() if key_points_match else ""
 
-        # Print or use the extracted parts
         print("\nDescription:", description)
         print("\nKey Points:", key_points)
 
@@ -286,14 +269,14 @@ def get_video_summary(transcript):
 
     except Exception as e:
         print(f"Error occurred while fetching the summary: {e}")
-        return None  # Or return an appropriate error message or value
+        return None 
 
 
 def ping_self():
     try:
         response = requests.get(
-            "https://renderbackend-xfh6.onrender.com/ping",  # Use the deployed URL
-            headers={"User-Agent": "Flask-Ping-Bot"}  # Add a User-Agent header
+            "https://renderbackend-xfh6.onrender.com/ping",
+            headers={"User-Agent": "Flask-Ping-Bot"}
         )
         if response.status_code == 200:
             print("Successfully pinged the server.")
@@ -401,7 +384,7 @@ def testing():
 def version():
     return jsonify({
         "python_version": sys.version,
-        "flask_version": pkg_resources.get_distribution("flask").version,  # Corrected to get flask version
+        "flask_version": pkg_resources.get_distribution("flask").version,
         "openai_version": pkg_resources.get_distribution("openai").version,
         "beautifulsoup_version": pkg_resources.get_distribution("beautifulsoup4").version 
     })
