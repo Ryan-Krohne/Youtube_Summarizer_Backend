@@ -201,7 +201,7 @@ def YouTubeTextConverter(video_id):
     return (response.text)
 
 current_transcript_index = 0
-#transcript_functions.append(Youtube_Transcripts)
+transcript_functions.append(Youtube_Transcripts)
 #transcript_functions.append(Youtube_Transcript)
 transcript_functions.append(Youtube_Transcripts_API)
 transcript_functions.append(YouTubeTextConverter)
