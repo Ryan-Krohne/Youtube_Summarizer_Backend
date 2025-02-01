@@ -67,7 +67,7 @@ def get_video_title(video_id):
 
 
 #https://rapidapi.com/ytjar/api/yt-api
-def get_video_title_and_url(video_id):
+def get_video_title_and_xmlUrl(video_id):
     url = "https://yt-api.p.rapidapi.com/video/info"
     headers = {
         "x-rapidapi-key": RAPIDAPI_KEY,
@@ -80,14 +80,15 @@ def get_video_title_and_url(video_id):
         response.raise_for_status()
         data = response.json()
         title = data["title"]
+        duration= data["lengthSeconds"]
 
         subtitles_data = data.get('subtitles', {}).get('subtitles', [])
         for subtitle in subtitles_data:
             if subtitle.get('languageName') == 'English' or subtitle.get('languageCode') == 'en':
                 subs = subtitle.get('url')
-                return [title, subs]
+                return [title, subs, duration]
 
-        return [title, None]
+        return [title, None, duration]
     except (requests.exceptions.RequestException, KeyError):
         return None
 
@@ -304,8 +305,13 @@ def summarize():
         print(f"ID: "+video_id)
 
         #500 requests/day
-        title, xml_url = get_video_title_and_url(video_id)
-        print(title, xml_url)
+        title, xml_url, duration = get_video_title_and_xmlUrl(video_id)
+        print(title, xml_url, duration)
+
+        if int(duration) > 2700:
+            return jsonify({"error": "Video can't be greater than 45 minutes."}), 400
+
+
         transcript1=get_transcript_from_xml_url(xml_url)
         print(f"TRANSCRIPT:",transcript1)
 
