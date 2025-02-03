@@ -356,54 +356,56 @@ def summarize():
 
         if int(duration) > 2700:
             return jsonify({"error": "Video can't be greater than 45 minutes."}), 400
+        
+        transcript1=""
 
+        if xml_url:
+            print("There is an xml url.")
+            transcript1=get_transcript_from_xml_url(xml_url)
+            print(f"TRANSCRIPT:",transcript1)
 
-        transcript1=get_transcript_from_xml_url(xml_url)
-        print(f"TRANSCRIPT:",transcript1)
+            if transcript1:
+                print("DOING XML WAY")
+                
+                # Get Summary
+                response = get_video_summary(transcript1)
+                description = response["description"]
+                key_points = response["key_points"]
 
-        if transcript1:
-            print("DOING XML WAY")
-            
-            # Get Summary
-            response = get_video_summary(transcript1)
-            description = response["description"]
-            key_points = response["key_points"]
+                print("Returning Summary...")
+                print("Description:", description)
+                print("Key Points:", key_points)
 
-            print("Returning Summary...")
-            print("Description:", description)
-            print("Key Points:", key_points)
+                return jsonify({
+                    "title": title,
+                    "description": description,
+                    "key_points": key_points
+                })
 
-            return jsonify({
-                "title": title,
-                "description": description,
-                "key_points": key_points
-            })
+        print("XML Failed")
 
+        # Get Transcript
+        transcript = roundRobinTranscript(video_id)
+        if transcript:
+            print("Receieved Transcript")
         else:
-            print("XML FAIL")
-
-            # Get Transcript
-            transcript = roundRobinTranscript(video_id)
-            if transcript:
-                print("Receieved Transcript")
-            else:
-                raise ValueError("Transcript retrieval failed.")
+            raise ValueError("There are no transcripts available for this video. Try another one.")
 
 
-            # Get Summary
-            response = get_video_summary(transcript)
-            description = response["description"]
-            key_points = response["key_points"]
+        # Get Summary
+        response = get_video_summary(transcript)
+        description = response["description"]
+        key_points = response["key_points"]
 
-            print("Returning Summary...")
-            print("Description:", description)
-            print("Key Points:", key_points)
+        print("Returning Summary...")
+        print("Description:", description)
+        print("Key Points:", key_points)
 
-            return jsonify({
-                "title": title,
-                "description": description,
-                "key_points": key_points
-            })
+        return jsonify({
+            "title": title,
+            "description": description,
+            "key_points": key_points
+        })
 
     except Exception as e:
         print(f"Unexpected error: {str(e)}")
@@ -438,7 +440,6 @@ def version():
         "python_version": sys.version,
         "flask_version": pkg_resources.get_distribution("flask").version,
         "openai_version": pkg_resources.get_distribution("openai").version,
-        "beautifulsoup_version": pkg_resources.get_distribution("beautifulsoup4").version 
     })
 
 # Flask route to handle the ping
