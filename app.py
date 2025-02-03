@@ -9,6 +9,8 @@ import time
 import os
 import re
 import xml.etree.ElementTree as ET
+import os
+import google.generativeai as genai
 
 app = Flask(__name__)
 CORS(app)
@@ -17,6 +19,51 @@ client = OpenAI()
 
 # List of functions for getting transcripts
 transcript_functions = []
+
+genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+
+generation_config = {
+  "temperature": 1,
+  "top_p": 0.95,
+  "top_k": 40,
+  "max_output_tokens": 8000,
+  "response_mime_type": "text/plain",
+}
+
+model = genai.GenerativeModel(
+  model_name="gemini-1.5-flash-8b",
+  generation_config=generation_config,
+)
+
+def gemini_summary(transcript):
+    chat_session = model.start_chat(
+    )
+
+    response = chat_session.send_message(f"""
+        Provide a detailed summary of the video transcript below. 
+        Format the response as follows:\n\n
+
+        **Description:**\n
+        [Provide a concise and engaging description of the video's main content here.]\n\n
+
+        **Key Points:**\n
+        **[Subheading for the key point]**\n  
+        [Explanation of the subheading or supporting details]\n  
+        [Additional explanation if needed]\n- 
+        **[Another subheading for a key point]**\n  
+        [Explanation of this subheading]\n  
+        [Supporting details]\n\nPlease ensure:\n- 
+        
+        The words 'Description' and 'Key Points' are bold.\n- 
+        Each key point has a general subheading followed by detailed explanations.\n- 
+        Do not use numbers to order the key points; use a dash instead.\n\n
+        Here is the transcript: {transcript}
+    """)
+
+    return response.text
+
+
+
 
 #Functions
 def extract_video_id(url):
@@ -101,7 +148,6 @@ def get_transcript_from_xml_url(xml_url):
 
       text = ' '.join([elem.text for elem in root.iter() if elem.text])
 
-      print(text)
       return {"transcript": text}
     else:
       return ""
@@ -439,6 +485,17 @@ def get_transcript():
     else:
         return jsonify({"error": f"Failed to retrieve the XML data. Status code: {response.status_code}"}), 500
 
+
+@app.route('/gemini_test', methods=['GET'])
+def gemini_test():
+    transcript = request.args.get('transcript', default='', type=str)
+
+    if transcript:
+        # Call gemini_summary function and print the result
+        summary = gemini_summary(transcript)
+        return summary
+    else:
+        return "Please provide a 'transcript' query parameter."
 
 if __name__ == '__main__':
     app.run(debug=True)
