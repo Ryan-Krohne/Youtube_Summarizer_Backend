@@ -352,7 +352,7 @@ def summarize():
 
         #500 requests/day
         title, xml_url, duration = get_video_title_and_xmlUrl(video_id)
-        print(title, xml_url, duration)
+        print(f"Youtube Title:",title, "\nXML URL:", xml_url,"\nVideo Duration:", duration)
 
         if int(duration) > 2700:
             return jsonify({"error": "Video can't be greater than 45 minutes."}), 400
