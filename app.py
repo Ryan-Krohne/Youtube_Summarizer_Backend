@@ -36,32 +36,54 @@ model = genai.GenerativeModel(
 )
 
 def gemini_summary(transcript):
-    chat_session = model.start_chat(
-    )
-
-    response = chat_session.send_message(f"""
-        Provide a detailed summary of the video transcript below. 
-        Format the response as follows:\n\n
-
-        **Description:**\n
-        [Provide a concise and engaging description of the video's main content here.]\n\n
-
-        **Key Points:**\n
-        **[Subheading for the key point]**\n  
-        [Explanation of the subheading or supporting details]\n  
-        [Additional explanation if needed]\n- 
-        **[Another subheading for a key point]**\n  
-        [Explanation of this subheading]\n  
-        [Supporting details]\n\nPlease ensure:\n- 
+    print("\n\nTALKING TO GEMINI RIGHT NOW!!!!!!\n\n")
+    try:
+        # Start the chat session and send the message to the model
+        chat_session = model.start_chat()
         
-        The words 'Description' and 'Key Points' are bold.\n- 
-        Each key point has a general subheading followed by detailed explanations.\n- 
-        Do not use numbers to order the key points; use a dash instead.\n\n
-        Here is the transcript: {transcript}
-    """)
+        response = chat_session.send_message(f"""
+            Provide a detailed summary of the video transcript below. 
+            Format the response as follows:\n\n
 
-    return response.text
+            **Description:**\n
+            [Provide a concise and engaging description of the video's main content here.]\n\n
 
+            **Key Points:**\n
+            **[Subheading for the key point]**\n  
+            [Explanation of the subheading or supporting details]\n  
+            [Additional explanation if needed]\n- 
+            **[Another subheading for a key point]**\n  
+            [Explanation of this subheading]\n  
+            [Supporting details]\n\nPlease ensure:\n- 
+            
+            The words 'Description' and 'Key Points' are bold.\n- 
+            Each key point has a general subheading followed by detailed explanations.\n- 
+            Do not use numbers to order the key points; use a dash instead.\n\n
+            Here is the transcript: {transcript}
+        """)
+
+        summary = response.text
+        print(f"Summary: {summary}")
+
+        # Extract the description and key points from the response using regular expressions
+        description_match = re.search(r"\*\*Description:\*\*(.*?)\*\*Key Points:\*\*", summary, re.DOTALL)
+        key_points_match = re.search(r"\*\*Key Points:\*\*(.*)", summary, re.DOTALL)
+
+        description = description_match.group(1).strip() if description_match else ""
+        key_points = key_points_match.group(1).strip() if key_points_match else ""
+
+        # Print the extracted description and key points
+        print("\nDescription:", description)
+        print("\nKey Points:", key_points)
+
+        return {
+            "description": description,
+            "key_points": key_points
+        }
+
+    except Exception as e:
+        print(f"Error occurred while fetching the summary: {e}")
+        return None
 
 
 
@@ -368,7 +390,7 @@ def summarize():
                 print("DOING XML WAY")
                 
                 # Get Summary
-                response = get_video_summary(transcript1)
+                response = gemini_summary(transcript1)
                 description = response["description"]
                 key_points = response["key_points"]
 
@@ -393,7 +415,7 @@ def summarize():
 
 
         # Get Summary
-        response = get_video_summary(transcript)
+        response = gemini_summary(transcript)
         description = response["description"]
         key_points = response["key_points"]
 
