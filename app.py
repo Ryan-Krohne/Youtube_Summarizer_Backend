@@ -42,28 +42,37 @@ def gemini_summary(transcript):
         chat_session = model.start_chat()
         
         response = chat_session.send_message(f"""
-            Provide a detailed summary of the video transcript below. 
-            Format the response as follows:\n\n
+         Provide a detailed summary of the video transcript below.  
+Format the response exactly as follows:  
 
-            **Description:**\n
-            [Provide a concise and engaging description of the video's main content here.]\n\n
+**Description:**  
+This video provides an in-depth discussion on a specific topic, explaining key ideas and insights in a structured and engaging way.  
 
-            **Key Points:**\n
-            **[Subheading for the key point]**\n  
-            [Explanation of the subheading or supporting details]\n  
-            [Additional explanation if needed]\n- 
-            **[Another subheading for a key point]**\n  
-            [Explanation of this subheading]\n  
-            [Supporting details]\n\nPlease ensure:\n- 
-            
-            The words 'Description' and 'Key Points' are bold.\n- 
-            Each key point has a general subheading followed by detailed explanations.\n- 
-            Do not use numbers to order the key points; use a dash instead.\n\n
-            Here is the transcript: {transcript}
+**Key Points:**  
+
+- First Key Point: Briefly explain this key idea in 4-5 lines, offering detailed context and examples as needed.\n
+- Another Key Point: Provide a short, 4-5 line explanation of this concept, including relevant details.\n
+- Additional Key Point: Summarize another insight from the discussion in 4-5 lines, providing clear context.\n
+- More Key Points as Needed: Continue listing key points from the transcript, keeping each explanation around 4-5 lines.\n
+
+### **Formatting Rules:**  
+- The words **"Description"** and **"Key Points"** must be bold and appear exactly as written.  
+- **Do not introduce extra labels or sections.** Only one "Key Points" section should exist.  
+- Each key point must follow this format:  
+  `- [Short, bold subheading]: [Explanation in 4-5 lines]`  
+- Use a dash (`-`) to list key points. **Do not use numbers.**  
+- Ensure the structure remains consistent across responses.  
+
+Here is the transcript: {transcript}
+
+
+
+
+
         """)
 
         summary = response.text
-        print(f"Summary: {summary}")
+        print(f"Summary: \n{summary}")
 
         # Extract the description and key points from the response using regular expressions
         description_match = re.search(r"\*\*Description:\*\*(.*?)\*\*Key Points:\*\*", summary, re.DOTALL)
@@ -284,7 +293,7 @@ def roundRobinTranscript(video_id):
     current_transcript_index = (current_transcript_index + 1) % len(transcript_functions)
 
     result = current_function(video_id)
-    print(result)
+    #print(result)
 
     return result
 
@@ -384,7 +393,7 @@ def summarize():
         if xml_url:
             print("There is an xml url.")
             transcript1=get_transcript_from_xml_url(xml_url)
-            print(f"TRANSCRIPT:",transcript1)
+            #print(f"TRANSCRIPT:",transcript1)
 
             if transcript1:
                 print("DOING XML WAY")
