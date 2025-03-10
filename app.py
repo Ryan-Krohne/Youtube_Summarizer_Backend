@@ -46,7 +46,7 @@ def gemini_summary(transcript):
 Format the response exactly as follows:  
 
 **Description:**  
-This video provides an in-depth discussion on a specific topic, explaining key ideas and insights in a structured and engaging way.  
+This video provides an in-depth discussion on a specific topic, explaining key ideas and insights in a structured and engaging way. This will be roughly 4 detailed sentences.  
 
 **Key Points:**  
 
@@ -60,7 +60,7 @@ This video provides an in-depth discussion on a specific topic, explaining key i
 - **Do not introduce extra labels or sections.** Only one "Key Points" section should exist.  
 - Each key point must follow this format:  
   `- [Short, bold subheading]: [Explanation in 4-5 lines]`  
-- Use a dash (`-`) to list key points. **Do not use numbers.**  
+- Use a dash (`-`) to list key points. **Do not use numbers or asterisks.**  
 - Ensure the structure remains consistent across responses.  
 
 Here is the transcript: {transcript}
