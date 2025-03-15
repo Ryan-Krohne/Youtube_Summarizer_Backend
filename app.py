@@ -36,7 +36,6 @@ model = genai.GenerativeModel(
 )
 
 def gemini_summary(transcript):
-    print("\n\nTALKING TO GEMINI RIGHT NOW!!!!!!\n\n")
     try:
         # Start the chat session and send the message to the model
         chat_session = model.start_chat()
@@ -373,11 +372,10 @@ def summarize():
 
         #Get Video ID
         video_id = extract_video_id(url)
-        print(f"ID: "+video_id)
 
         #500 requests/day
         title, xml_url, duration = get_video_title_and_xmlUrl(video_id)
-        print(f"Youtube Title:",title, "\nXML URL:", xml_url,"\nVideo Duration:", duration)
+        print(f"Youtube Title: {title}, Video Duration: {duration}")
 
         if int(duration) > 2700:
             return jsonify({"error": "Video can't be greater than 45 minutes."}), 400
@@ -385,7 +383,6 @@ def summarize():
         transcript1=""
 
         if xml_url:
-            print("There is an xml url.")
             transcript1=get_transcript_from_xml_url(xml_url)
             #print(f"TRANSCRIPT:",transcript1)
 
