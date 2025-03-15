@@ -42,37 +42,31 @@ def gemini_summary(transcript):
         chat_session = model.start_chat()
         
         response = chat_session.send_message(f"""
-         Provide a detailed summary of the video transcript below.  
-Format the response exactly as follows:  
+        Provide a detailed summary of the video transcript below.
+        Format the response exactly as follows:
 
-**Description:**  
-This video provides an in-depth discussion on a specific topic, explaining key ideas and insights in a structured and engaging way. This will be roughly 4 detailed sentences.  
+        **Description:**  
+        This video provides an in-depth discussion on a specific topic, explaining key ideas and insights in a structured and engaging way. This will be roughly 4 detailed sentences.  
 
-**Key Points:**  
+        **Key Points:**  
 
-- First Key Point: Briefly explain this key idea in 4-5 lines, offering detailed context and examples as needed.\n
-- Another Key Point: Provide a short, 4-5 line explanation of this concept, including relevant details.\n
-- Additional Key Point: Summarize another insight from the discussion in 4-5 lines, providing clear context.\n
-- More Key Points as Needed: Continue listing key points from the transcript, keeping each explanation around 4-5 lines.\n
+        - First Key Point: Briefly explain this key idea in 4-5 lines, offering detailed context and examples as needed.\n
+        - Another Key Point: Provide a short, 4-5 line explanation of this concept, including relevant details.\n
+        - Additional Key Point: Summarize another insight from the discussion in 4-5 lines, providing clear context.\n
+        - More Key Points as Needed: Continue listing key points from the transcript, keeping each explanation around 4-5 lines.\n
 
-### **Formatting Rules:**  
-- The words **"Description"** and **"Key Points"** must be bold and appear exactly as written.  
-- **Do not introduce extra labels or sections.** Only one "Key Points" section should exist.  
-- Each key point must follow this format:  
-  `- [Short, bold subheading]: [Explanation in 4-5 lines]`  
-- Use a dash (`-`) to list key points. **Do not use numbers or asterisks.**  
-- Ensure the structure remains consistent across responses.  
+        ### **Formatting Rules:**  
+        - The words **"Description"** and **"Key Points"** must be bold and appear exactly as written.  
+        - **Do not introduce extra labels or sections.** Only one "Key Points" section should exist.  
+        - Each key point must follow this format:  
+        `- [Short, bold subheading]: [Explanation in 4-5 lines]`  
+        - Use a dash (`-`) to list key points. **Do not use numbers or asterisks.**  
+        - Ensure the structure remains consistent across responses.  
 
-Here is the transcript: {transcript}
-
-
-
-
-
+        Here is the transcript: {transcript}
         """)
 
         summary = response.text
-        print(f"Summary: \n{summary}")
 
         # Extract the description and key points from the response using regular expressions
         description_match = re.search(r"\*\*Description:\*\*(.*?)\*\*Key Points:\*\*", summary, re.DOTALL)
@@ -403,10 +397,6 @@ def summarize():
                 description = response["description"]
                 key_points = response["key_points"]
 
-                print("Returning Summary...")
-                print("Description:", description)
-                print("Key Points:", key_points)
-
                 return jsonify({
                     "title": title,
                     "description": description,
@@ -427,10 +417,6 @@ def summarize():
         response = gemini_summary(transcript)
         description = response["description"]
         key_points = response["key_points"]
-
-        print("Returning Summary...")
-        print("Description:", description)
-        print("Key Points:", key_points)
 
         return jsonify({
             "title": title,
