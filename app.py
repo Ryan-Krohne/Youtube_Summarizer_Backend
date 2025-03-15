@@ -56,7 +56,7 @@ def gemini_summary(transcript):
         - More Key Points as Needed: Continue listing key points from the transcript, keeping each explanation around 4-5 lines.\n
 
         ### **Formatting Rules:**  
-        - The words **"Description"** and **"Key Points"** must be bold and appear exactly as written.  
+        - The words **"Description"** and **"Key Points"** must be bold and appear exactly as written. The phrase "Key Points" should not have any text before or after them.
         - **Do not introduce extra labels or sections.** Only one "Key Points" section should exist.  
         - Each key point must follow this format:  
         `- [Short, bold subheading]: [Explanation in 4-5 lines]`  
