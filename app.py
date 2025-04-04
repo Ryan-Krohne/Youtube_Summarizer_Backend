@@ -216,7 +216,6 @@ def Youtube_Transcripts(video_id):
         if response.status_code == 200:
             transcript = [item["text"] for item in response.json().get("content", [])]
             ans = " ".join(transcript)
-            print("Received Transcript")
             return ans
         else:
             print("Error: Could not fetch transcript")
@@ -403,32 +402,24 @@ def summarize():
         if int(duration) > 2700:
             return jsonify({"error": "Video can't be greater than 45 minutes."}), 400
         
-        transcript1=""
+        transcript=""
 
         if xml_url:
-            transcript1=get_transcript_from_xml_url(xml_url)
-            #print(f"TRANSCRIPT:",transcript1)
+            print("There is an XML URL")
+            transcript=get_transcript_from_xml_url(xml_url)
+            if transcript:
+                print("XML Succeeded")
+            else:
+                print("XML FAILED")
+        else:
+            print("There is NO XML URL")
 
-            if transcript1:
-                print("DOING XML WAY")
-                
-                # Get Summary
-                response = gemini_summary(transcript1)
-                description = response["description"]
-                key_points = response["key_points"]
-
-                return jsonify({
-                    "title": title,
-                    "description": description,
-                    "key_points": key_points
-                })
-
-        print("XML Failed")
-
-        # Get Transcript
-        transcript = roundRobinTranscript(video_id)
+        if not transcript:
+            transcript = roundRobinTranscript(video_id)
+            
+        
         if transcript:
-            print("Receieved Transcript")
+            print("Received Transcript")
         else:
             raise ValueError("There are no transcripts available for this video. Try another one.")
 
