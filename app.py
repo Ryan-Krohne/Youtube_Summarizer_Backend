@@ -87,7 +87,28 @@ def gemini_summary(transcript):
         print(f"Error occurred while fetching the summary: {e}")
         return None
 
+def generate_faqs(title):
+    try:
+        # Start the chat session and send the message to the model
+        chat_session = model.start_chat()
+        
+        response = chat_session.send_message(f"""
+        Given the YouTube video title below, identify the top 3 most likely questions a user would have about the video's content *before* watching it. Focus on questions that would help them understand the video's main topic, scope, and key takeaways.
 
+        Return *only* the three questions, with each question on a new line and no other introductory or concluding text.
+
+        Here is the Title: {title}
+        """)
+
+        faqs = response.text
+
+        return {"faqs": faqs}
+
+    except Exception as e:
+        print(f"Error occurred while fetching the faqs: {e}")
+        return None
+
+    
 
 #Functions
 def extract_video_id(url):
@@ -377,6 +398,8 @@ def summarize():
         title, xml_url, duration = get_video_title_and_xmlUrl(video_id)
         print(f"Youtube Title: {title}, Video Duration: {duration}")
 
+        faqs=generate_faqs(title)
+
         if int(duration) > 2700:
             return jsonify({"error": "Video can't be greater than 45 minutes."}), 400
         
@@ -508,6 +531,16 @@ def gemini_test():
     if transcript:
         summary = gemini_summary(transcript)
         return summary
+    else:
+        return "No transcript provided."
+    
+@app.route('/faqs', methods=['GET'])
+def faqs():
+    title = "iOS 17 Hands-On: Top 5 Features!"
+    
+    if title:
+        faqs = generate_faqs(title)
+        return faqs
     else:
         return "No transcript provided."
 
