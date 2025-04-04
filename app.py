@@ -300,15 +300,23 @@ transcript_functions.append(YouTubeTextConverter)
 
 def roundRobinTranscript(video_id):
     global current_transcript_index
+    max_attempts = len(transcript_functions)
 
-    current_function = transcript_functions[current_transcript_index]
+    for attempt in range(max_attempts):
+        current_function = transcript_functions[current_transcript_index]
 
-    current_transcript_index = (current_transcript_index + 1) % len(transcript_functions)
+        current_transcript_index = (current_transcript_index + 1) % len(transcript_functions)
 
-    result = current_function(video_id)
-    #print(result)
+        try:
+            transcript = current_function(video_id)
+            if transcript:
+                return transcript
+        except Exception as e:
+            print(f"Error occurred while trying {current_function.__name__}: {e}")
 
-    return result
+    print("Failed to retrieve transcript using all available methods.")
+    return None  # Or raise an exception here if you prefer
+
 
 
 
@@ -405,7 +413,7 @@ def summarize():
         transcript=""
 
         if xml_url:
-            print("There is an XML URL")
+            print(f"There is an XML URL: {xml_url}\n")
             transcript=get_transcript_from_xml_url(xml_url)
             if transcript:
                 print("XML Succeeded")
