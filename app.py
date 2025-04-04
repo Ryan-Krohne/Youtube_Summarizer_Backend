@@ -35,7 +35,7 @@ model = genai.GenerativeModel(
   generation_config=generation_config,
 )
 
-def gemini_summary(transcript):
+def gemini_summary(transcript, faqs):
     try:
         # Start the chat session and send the message to the model
         chat_session = model.start_chat()
@@ -433,7 +433,7 @@ def summarize():
 
 
         # Get Summary
-        response = gemini_summary(transcript)
+        response = gemini_summary(transcript, faqs)
         description = response["description"]
         key_points = response["key_points"]
 
