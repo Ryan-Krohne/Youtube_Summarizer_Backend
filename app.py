@@ -71,7 +71,6 @@ def gemini_summary(transcript, faqs):
         - Use a dash (`-`) to list key points. **Do not use numbers or asterisks.**
         - Ensure the structure remains consistent across responses.
         You will be given 3 questions after the transcript. Provide a concise answer to the questions given based *only* on the provided transcript. 
-        If the answer is not explicitly in the transcript, state that.
         Only include the answer in the response. Separated each answer by the delimiter '---ANSWER_SEPARATOR---'.**
 
         Here are the questions, and the transcript will be below: {', '.join(faqs.values())}
@@ -83,7 +82,7 @@ def gemini_summary(transcript, faqs):
 
         # Extract the description and key points from the response using regular expressions
         description_match = re.search(r"\*\*Description:\*\*(.*?)\*\*Key Points:\*\*", summary_with_faqs, re.DOTALL)
-        key_points_match = re.search(r"\*\*Key Points:\*\*(.*?)(?:\*\*Frequently Asked Questions:\*\*|$)", summary_with_faqs, re.DOTALL)
+        key_points_match = re.search(r"\*\*Key Points:\*\*(.*?)(?=\n\n\*\*Answer Section:\*\*|$)", summary_with_faqs, re.DOTALL)
         answer_pattern = r"ANSWER\d+:\s(.*?)(?:\s---ANSWER_SEPARATOR---|$)"
 
         description = description_match.group(1).strip() if description_match else ""
@@ -93,16 +92,16 @@ def gemini_summary(transcript, faqs):
         for i, answer in enumerate(matches):
             answers_dict[faqs[f"q{i+1}"]] = answer.strip()
 
-        print(answers_dict)
 
         # Print the extracted information
-        # print("\nDescription:", description)
-        # print("\nKey Points:", key_points)
-        # print("\nFAQ Answers:", faq_answers)
+        print("\nDescription:", description)
+        print("\nKey Points:", key_points)
+        print("\nFAQ Answers:", answers_dict)
 
         return {
             "description": description,
             "key_points": key_points,
+            "faqs": answers_dict
         }
 
     except Exception as e:
@@ -467,11 +466,13 @@ def summarize():
         response = gemini_summary(transcript, faq_dict)
         description = response["description"]
         key_points = response["key_points"]
+        faqs = response["faqs"]
 
         return jsonify({
             "title": title,
             "description": description,
-            "key_points": key_points
+            "key_points": key_points,
+            "faqs": faqs
         })
 
     except Exception as e:
