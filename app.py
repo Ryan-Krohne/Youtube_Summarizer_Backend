@@ -486,19 +486,17 @@ def testing():
     
     # Mock data for description and summary
     description = (
-        "This video shares five fundamental rules of content creation that the speaker has implemented to grow his personal brand to over 3 million followers and achieve over 100 million views monthly. It delves into strategic advice for building a personal brand through consistent content creation, highlighting the importance of authenticity, systems, and sharing personal experiences."
+        "This music video presents a somber and introspective theme, dealing with feelings of being trapped and held back. The lyrics and visuals evoke a sense of struggle and the desire to overcome difficult circumstances. The song conveys a message of resilience and the internal fight to rise above adversity. It utilizes powerful imagery and emotive vocal delivery."
     )
-    key_points = (
-        "1. **Introduction:** Overview of Lockheed Martin's history and significance.\n"
-        "2. **Skunk Works:** Discussion on groundbreaking aerospace innovations like the SR-71 Blackbird.\n"
-        "3. **Military-Industrial Complex:** Examination of the relationship between government contracts and private contractors.\n"
-        "4. **Post-Cold War Challenges:** Analysis of adapting to new market needs and realities.\n"
-        "5. **Conclusion:** Reflection on Lockheed Martin's role in shaping U.S. defense and technological leadership."
+    key_points = ("""
+        -   **Feeling Trapped and Suffocated:** The opening lyrics describe feelings of being unable to breathe and the air running out. This sets the tone for the video, emphasizing a sense of confinement and desperation. The video focuses on how the person feels inside their mind.\n\n-   **The Struggle for Escape:** The song repeatedly mentions trying to escape, but finding \"nowhere to go.\" This reflects the internal conflict of wanting to break free from a negative situation or mindset, yet feeling trapped. The music helps the listener understand these emotions.\n\n-   **Blame and Responsibility:** The lyrics state \"there's no one else to blame\" and \"no one else to play,\" implying the individual acknowledges their responsibility for their situation. This could be internal struggles with themselves, or external problems they face.\n\n-   **Dealing with a Negative Influence:** The song also touches upon a negative influence, referring to a \"devil\" who is coming. This could represent an external force, a deceptive person, or the inner demons of the protagonist. The video suggests how it is possible to overcome this.
+    """
     )
+    title = ("Up From The Bottom (Official Music Video) - Linkin Park")
     
     # Return as JSON
     return jsonify({
-        "title": "The History of Lockheed Martin",
+        "title": title,
         "description": description,
         "key_points": key_points
     })
