@@ -72,6 +72,7 @@ def gemini_summary(transcript, faqs):
         - Ensure the structure remains consistent across responses.
         You will be given 3 questions after the transcript. Provide a concise answer to the questions given based *only* on the provided transcript. 
         Only include the answer in the response. Separated each answer by the delimiter '---ANSWER_SEPARATOR---'.**
+        If you're not sure about a question, do your best to provide a response for the user.
 
         Here are the questions, and the transcript will be below: {', '.join(faqs.values())}
         Here is the transcript: {transcript}
