@@ -462,6 +462,7 @@ def summarize():
         else:
             raise ValueError("There are no transcripts available for this video. Try another one.")
 
+        print(transcript)
 
         # Get Summary
         response = gemini_summary(transcript, faq_dict)
@@ -482,23 +483,28 @@ def summarize():
 
 @app.route('/testing', methods=['POST'])
 def testing():
-    time.sleep(1.5)
     
     # Mock data for description and summary
     description = (
-        "This music video presents a somber and introspective theme, dealing with feelings of being trapped and held back. The lyrics and visuals evoke a sense of struggle and the desire to overcome difficult circumstances. The song conveys a message of resilience and the internal fight to rise above adversity. It utilizes powerful imagery and emotive vocal delivery."
+        "This video provides a clear and concise explanation of tree data structures, focusing specifically on binary search trees. It introduces the concept of trees with a root node and child nodes, emphasizing binary trees where each node has at most two children. The video then delves into the ordering properties of binary search trees, insert and find operations, and the importance of balanced trees to maintain efficiency. The video concludes by explaining tree traversal methods and the code implementation of the insert, find, and print inorder methods, along with an example walkthrough of the methods."
     )
     key_points = ("""
-        -   **Feeling Trapped and Suffocated:** The opening lyrics describe feelings of being unable to breathe and the air running out. This sets the tone for the video, emphasizing a sense of confinement and desperation. The video focuses on how the person feels inside their mind.\n\n-   **The Struggle for Escape:** The song repeatedly mentions trying to escape, but finding \"nowhere to go.\" This reflects the internal conflict of wanting to break free from a negative situation or mindset, yet feeling trapped. The music helps the listener understand these emotions.\n\n-   **Blame and Responsibility:** The lyrics state \"there's no one else to blame\" and \"no one else to play,\" implying the individual acknowledges their responsibility for their situation. This could be internal struggles with themselves, or external problems they face.\n\n-   **Dealing with a Negative Influence:** The song also touches upon a negative influence, referring to a \"devil\" who is coming. This could represent an external force, a deceptive person, or the inner demons of the protagonist. The video suggests how it is possible to overcome this.
+        -   **What are Trees?:** A tree is a data structure where a root node has child nodes that can also have child nodes, creating a hierarchical structure. Binary trees are a specific type where each node has a maximum of two children (left and right nodes). Binary search trees are a type of binary tree with an ordering property where left nodes are smaller than the root, and right nodes are larger.\n\n-   **Insertion and Finding:** Inserting a node into a binary search tree involves comparing the new value with the existing nodes, moving left or right based on the comparison, and inserting the new node in an empty spot. Finding a node is similar; it involves comparing the target value with the current node, moving left or right to narrow down the search, making it very fast.\n\n-   **Tree Balancing:** When elements are inserted into a binary search tree in a particular order, the tree can become imbalanced, resembling a long list and reducing search efficiency. Algorithms ensure trees stay balanced, maintaining roughly the same number of nodes on the left and right sides of each node.\n\n-   **Tree Traversal Methods:** There are three common ways to traverse a tree: inorder, preorder, and postorder. Inorder traversal visits the left nodes, then the current node, and finally the right nodes. Preorder visits the current node first, then the left, then the right. Postorder visits the left, then the right, then the current node. Inorder traversals are often used in binary search trees to print nodes in order.\n\n-   **Implementation of insert, find and print inorder:** The video outlines how to implement a binary search tree using node classes with pointers to left and right children, and a data field. The insert method recursively inserts a new node based on its value compared to the current node. The find method uses recursion to check if a node with a given value exists and inorder traversal prints the node left child, itself, then right.
     """
     )
-    title = ("Up From The Bottom (Official Music Video) - Linkin Park")
-    
+    title = ("Data Structures: Trees")
+
+    faqs = {
+        "How are trees used in computer science and what are some practical examples?": "The video explains that inorder traversals are typically used in binary search trees because they allow the nodes to be printed in order. Practical examples of tree use cases are not provided, but the video notes the implementation of insert, find, and print inorder methods.",
+        "What are data structures, specifically trees, and why are they important?": "Data structures, specifically trees, organize data in a hierarchical structure with a root node and child nodes. Binary search trees, which are covered in the video, are an important type of tree due to their efficiency in searching, inserting, and deleting data, as long as the tree is balanced. They allow quick retrieval of information.",
+        "What types of trees are covered in this video?": "The video focuses on binary trees and binary search trees, where each node has at most two children (left and right)."
+    }
     # Return as JSON
     return jsonify({
         "title": title,
         "description": description,
-        "key_points": key_points
+        "key_points": key_points,
+        "faqs" : faqs
     })
 
 @app.route('/version', methods=['GET'])
