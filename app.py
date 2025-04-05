@@ -31,7 +31,7 @@ generation_config = {
 }
 
 model = genai.GenerativeModel(
-  model_name="gemini-1.5-flash-8b",
+  model_name="gemini-2.0-flash-lite",
   generation_config=generation_config,
 )
 
@@ -79,7 +79,7 @@ def gemini_summary(transcript, faqs):
         """)
 
         summary_with_faqs = response.text
-        print(summary_with_faqs)
+        print(summary_with_faqs, "\n\n\n\n\n\n")
 
         # Extract the description and key points from the response using regular expressions
         description_match = re.search(r"\*\*Description:\*\*(.*?)\*\*Key Points:\*\*", summary_with_faqs, re.DOTALL)
