@@ -79,7 +79,6 @@ def gemini_summary(transcript, faqs):
         """)
 
         summary_with_faqs = response.text
-        print(summary_with_faqs, "\n\n\n\n\n\n")
 
         # Extract the description and key points from the response using regular expressions
         description_match = re.search(r"\*\*Description:\*\*(.*?)\*\*Key Points:\*\*", summary_with_faqs, re.DOTALL)
