@@ -11,6 +11,7 @@ import re
 import xml.etree.ElementTree as ET
 import os
 import google.generativeai as genai
+import random
 
 app = Flask(__name__)
 CORS(app)
@@ -434,11 +435,17 @@ def summarize():
         title, xml_url, duration = get_video_title_and_xmlUrl(video_id)
         print(f"Youtube Title: {title}, Video Duration: {duration}")
 
-        faq_dict=generate_faqs(title)
-        print(f"FAQS:\n{faq_dict}")
-
         if int(duration) > 2700:
-            return jsonify({"error": "Video can't be greater than 45 minutes."}), 400
+            funny_messages = [
+                "Nice try, but I don’t do marathons. Keep it under 45 minutes.",
+                "I summarize videos, not cinematic universes. 45 minutes max!",
+                "Attention span exceeded. Try something snack-sized (< 45 mins).",
+                "If it needs popcorn, it's too long. 45-minute limit in effect.",
+                "This ain’t a podcast. Keep it under 45 mins, champ.",
+            ]
+            return jsonify({"error": random.choice(funny_messages)}), 400
+
+        faq_dict=generate_faqs(title)
         
         transcript=""
 
@@ -460,8 +467,6 @@ def summarize():
             print("Received Transcript")
         else:
             raise ValueError("There are no transcripts available for this video. Try another one.")
-
-        print(transcript)
 
         # Get Summary
         response = gemini_summary(transcript, faq_dict)
@@ -586,6 +591,12 @@ def faq():
 def test_endpoint():
     """A simple test endpoint that returns a JSON message."""
     return jsonify({"message": "Hello from the test API!"})
+
+@app.route('/time-error', methods=['GET'])
+def test_error():
+    # Always returns an error with a 400 status code
+    return jsonify({"error": "This is a test error. Something went wrong!"}), 400
+
 
 if __name__ == '__main__':
     app.run(debug=True)
