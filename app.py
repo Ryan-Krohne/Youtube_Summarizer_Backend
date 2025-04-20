@@ -21,7 +21,7 @@ client = OpenAI()
 # List of functions for getting transcripts
 transcript_functions = []
 
-genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+genai.configure(api_key=os.environ["test"])
 
 generation_config = {
   "temperature": 1,
