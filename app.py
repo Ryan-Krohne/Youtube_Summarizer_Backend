@@ -487,6 +487,7 @@ def summarize():
 
 @app.route('/testing', methods=['POST'])
 def testing():
+    time.sleep(10)
     
     # Mock data for description and summary
     description = (
