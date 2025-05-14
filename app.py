@@ -12,11 +12,16 @@ import xml.etree.ElementTree as ET
 import os
 import google.generativeai as genai
 import random
+import psycopg2
 
 app = Flask(__name__)
 CORS(app)
 RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
 client = OpenAI()
+
+DATABASE_URL = os.getenv("YOUTUBE_STATISTICS_DB_URL")
+conn = psycopg2.connect(DATABASE_URL)
+cursor = conn.cursor()
 
 # List of functions for getting transcripts
 transcript_functions = []
@@ -598,6 +603,37 @@ def test_error():
     # Always returns an error with a 400 status code
     return jsonify({"error": "This is a test error. Something went wrong!"}), 400
 
+# POST endpoint to insert a log when a video is summarized
+@app.route('/log', methods=['POST'])
+def create_log():
+    data = request.get_json()
+    
+    youtube_title = data.get('youtube_title')
+    youtube_url = data.get('youtube_url')
+
+    if not youtube_title or not youtube_url:
+        return jsonify({"error": "youtube_title and youtube_url are required"}), 400
+
+    try:
+        cursor.execute('''
+            INSERT INTO logs (youtube_title, youtube_url) 
+            VALUES (%s, %s)
+        ''', (youtube_title, youtube_url))
+        conn.commit()
+        
+        return jsonify({"message": "Log created successfully"}), 201
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": str(e)}), 500
+
+# GET endpoint to fetch all logs
+@app.route('/logs', methods=['GET'])
+def get_logs():
+    cursor.execute('SELECT id, youtube_title, youtube_url FROM logs ORDER BY id DESC')
+    rows = cursor.fetchall()
+    
+    logs = [{"id": row[0], "youtube_title": row[1], "youtube_url": row[2]} for row in rows]
+    return jsonify(logs), 200
 
 if __name__ == '__main__':
     app.run(debug=True)
