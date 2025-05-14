@@ -54,7 +54,6 @@ def insert_log(youtube_title, youtube_url):
         print(f"Failed to insert log: {e}")
         return False
 
-
 def gemini_summary(transcript, faqs):
     try:
         answers_dict = {}
@@ -493,7 +492,10 @@ def summarize():
         faqs = response["faqs"]
 
         # ✅ Post to /logs after successful summary
-        insert_log(title, url)
+        log_success = insert_log(title, url)
+        if not log_success:
+            print("Log insertion failed, continuing anyway.")
+
 
         return jsonify({
             "title": title,
