@@ -41,6 +41,20 @@ model = genai.GenerativeModel(
   generation_config=generation_config,
 )
 
+def insert_log(youtube_title, youtube_url):
+    try:
+        cursor.execute(
+            'INSERT INTO logs (youtube_title, youtube_url) VALUES (%s, %s)',
+            (youtube_title, youtube_url)
+        )
+        conn.commit()
+        return True
+    except Exception as e:
+        conn.rollback()
+        print(f"Failed to insert log: {e}")
+        return False
+
+
 def gemini_summary(transcript, faqs):
     try:
         answers_dict = {}
@@ -113,7 +127,7 @@ def gemini_summary(transcript, faqs):
     except Exception as e:
         print(f"Error occurred while fetching the summary and FAQs: {e}")
         return None
-    
+
 
 def generate_faqs(title):
     try:
@@ -143,7 +157,6 @@ def generate_faqs(title):
         print(f"Error occurred while fetching the faqs: {e}")
         return None
 
-    
 
 #Functions
 def extract_video_id(url):
@@ -479,6 +492,9 @@ def summarize():
         key_points = response["key_points"]
         faqs = response["faqs"]
 
+        # ✅ Post to /logs after successful summary
+        insert_log(title, url)
+
         return jsonify({
             "title": title,
             "description": description,
@@ -607,24 +623,16 @@ def test_error():
 @app.route('/log', methods=['POST'])
 def create_log():
     data = request.get_json()
-    
     youtube_title = data.get('youtube_title')
     youtube_url = data.get('youtube_url')
 
     if not youtube_title or not youtube_url:
         return jsonify({"error": "youtube_title and youtube_url are required"}), 400
 
-    try:
-        cursor.execute('''
-            INSERT INTO logs (youtube_title, youtube_url) 
-            VALUES (%s, %s)
-        ''', (youtube_title, youtube_url))
-        conn.commit()
-        
+    if insert_log(youtube_title, youtube_url):
         return jsonify({"message": "Log created successfully"}), 201
-    except Exception as e:
-        conn.rollback()
-        return jsonify({"error": str(e)}), 500
+    else:
+        return jsonify({"error": "Failed to create log"}), 500
 
 # GET endpoint to fetch all logs
 @app.route('/logs', methods=['GET'])
