@@ -640,11 +640,20 @@ def create_log():
 # GET endpoint to fetch all logs
 @app.route('/logs', methods=['GET'])
 def get_logs():
-    cursor.execute('SELECT id, youtube_title, youtube_url FROM logs ORDER BY id DESC')
-    rows = cursor.fetchall()
-    
-    logs = [{"id": row[0], "youtube_title": row[1], "youtube_url": row[2]} for row in rows]
-    return jsonify(logs), 200
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        cursor = conn.cursor()
+        cursor.execute('SELECT id, youtube_title, youtube_url FROM logs ORDER BY id DESC')
+        rows = cursor.fetchall()
+        cursor.close()
+        conn.close()
+
+        logs = [{"id": row[0], "youtube_title": row[1], "youtube_url": row[2]} for row in rows]
+        return jsonify(logs), 200
+    except Exception as e:
+        print(f"Failed to fetch logs: {e}")
+        return jsonify({"error": "Failed to fetch logs"}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)
