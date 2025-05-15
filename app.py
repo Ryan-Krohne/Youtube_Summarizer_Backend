@@ -20,8 +20,6 @@ RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
 client = OpenAI()
 
 DATABASE_URL = os.getenv("YOUTUBE_STATISTICS_DB_URL")
-conn = psycopg2.connect(DATABASE_URL)
-cursor = conn.cursor()
 
 # List of functions for getting transcripts
 transcript_functions = []
@@ -43,14 +41,17 @@ model = genai.GenerativeModel(
 
 def insert_log(youtube_title, youtube_url):
     try:
+        conn = psycopg2.connect(DATABASE_URL)
+        cursor = conn.cursor()
         cursor.execute(
             'INSERT INTO logs (youtube_title, youtube_url) VALUES (%s, %s)',
             (youtube_title, youtube_url)
         )
         conn.commit()
+        cursor.close()
+        conn.close()
         return True
     except Exception as e:
-        conn.rollback()
         print(f"Failed to insert log: {e}")
         return False
 
