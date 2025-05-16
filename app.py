@@ -13,6 +13,7 @@ import os
 import google.generativeai as genai
 import random
 import psycopg2
+import json
 
 app = Flask(__name__)
 CORS(app)
@@ -39,14 +40,21 @@ model = genai.GenerativeModel(
   generation_config=generation_config,
 )
 
-def insert_log(youtube_title, youtube_url):
+import json
+
+def insert_log(title, url, video_id, description, key_points, faqs):
     try:
         conn = psycopg2.connect(DATABASE_URL)
         cursor = conn.cursor()
+
         cursor.execute(
-            'INSERT INTO logs (youtube_title, youtube_url) VALUES (%s, %s)',
-            (youtube_title, youtube_url)
+            '''
+            INSERT INTO logs (youtube_title, youtube_url, video_id, description, key_points, faqs)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            ''',
+            (title, url, video_id, description, key_points, json.dumps(faqs))
         )
+
         conn.commit()
         cursor.close()
         conn.close()
@@ -493,9 +501,12 @@ def summarize():
         faqs = response["faqs"]
 
         # ✅ Post to /logs after successful summary
-        log_success = insert_log(title, url)
+        log_success = insert_log(title, url, video_id, description, key_points, faqs)
+
         if not log_success:
             print("Log insertion failed, continuing anyway.")
+        else:
+            print("Logged data")
 
 
         return jsonify({
