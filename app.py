@@ -291,6 +291,7 @@ def get_transcript_from_xml_url(xml_url):
 
 #https://rapidapi.com/8v2FWW4H6AmKw89/api/youtube-transcripts
 def Youtube_Transcripts(video_id):
+    print("0")
     rapid_api_url = "https://youtube-transcripts.p.rapidapi.com/youtube/transcript"
     headers = {
         "x-rapidapi-key": RAPIDAPI_KEY,
@@ -537,7 +538,7 @@ def summarize():
             
         
         if transcript:
-            print("Received Transcript")
+            print("Received Transcript:", transcript)
         else:
             raise ValueError("There are no transcripts available for this video. Try another one.")
 
