@@ -496,10 +496,9 @@ def summarize():
         if cached:
             print("attempting to return")
             return {
-                "cached": True,
-                "youtube_title": cached["youtube_title"],
+                "title": cached["youtube_title"],
                 "description": cached["description"],
-                "keypoints": cached["keypoints"],
+                "key_points": cached["keypoints"],
                 "faqs": cached["faqs"],
             }
         print("did not retrieve cache")
