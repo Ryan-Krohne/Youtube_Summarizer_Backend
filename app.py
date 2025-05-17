@@ -40,7 +40,40 @@ model = genai.GenerativeModel(
   generation_config=generation_config,
 )
 
-import json
+def get_cached_summary(video_id):
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        cursor = conn.cursor()
+
+        cursor.execute(
+            '''
+            SELECT youtube_title, description, key_points, faqs
+            FROM logs
+            WHERE video_id = %s
+            LIMIT 1
+            ''',
+            (video_id,)
+        )
+
+        result = cursor.fetchone()
+        cursor.close()
+        conn.close()
+
+        if result:
+            youtube_title, description, keypoints, faqs_jsonb = result
+            faqs = faqs_jsonb  # already a dict
+            return {
+                "youtube_title": youtube_title,
+                "description": description,
+                "keypoints": keypoints,
+                "faqs": faqs,
+            }
+
+        else:
+            return None
+    except Exception as e:
+        print(f"Error querying cached summary: {e}")
+        return None
 
 def insert_log(title, url, video_id, description, key_points, faqs):
     try:
@@ -456,6 +489,21 @@ def summarize():
 
         #Get Video ID
         video_id = extract_video_id(url)
+
+        print("AT CACHING AREA")
+        #retrieve cached summaries if they exist
+        cached = get_cached_summary(video_id)
+        if cached:
+            print("attempting to return")
+            return {
+                "cached": True,
+                "youtube_title": cached["youtube_title"],
+                "description": cached["description"],
+                "keypoints": cached["keypoints"],
+                "faqs": cached["faqs"],
+            }
+        print("did not retrieve cache")
+
 
         #500 requests/day
         title, xml_url, duration = get_video_title_and_xmlUrl(video_id)
