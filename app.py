@@ -153,12 +153,6 @@ def gemini_summary(transcript, faqs):
         for i, answer in enumerate(matches):
             answers_dict[faqs[f"q{i+1}"]] = answer.strip()
 
-
-        # Print the extracted information
-        print("\nDescription:", description)
-        print("\nKey Points:", key_points)
-        print("\nFAQ Answers:", answers_dict)
-
         return {
             "description": description,
             "key_points": key_points,
