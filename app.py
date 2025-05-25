@@ -480,23 +480,26 @@ def summarize():
         #Get URL
         data = request.get_json()
         url = data.get('url')
-        print(f"\n\nReceived request for summarize:", url)
+        refresh = data.get('refresh', False)
+        print(f"\n\nReceived request to summarize: {url} | Refresh: {refresh}")
 
         #Get Video ID
         video_id = extract_video_id(url)
 
-        print("AT CACHING AREA")
-        #retrieve cached summaries if they exist
-        cached = get_cached_summary(video_id)
-        if cached:
-            print("attempting to return")
-            return {
-                "title": cached["youtube_title"],
-                "description": cached["description"],
-                "key_points": cached["keypoints"],
-                "faqs": cached["faqs"],
-            }
-        print("did not retrieve cache")
+        # Only attempt to use cache if refresh is False
+        if not refresh:
+            print("Checking cache...")
+            cached = get_cached_summary(video_id)
+            if cached:
+                print("Returning cached summary.")
+                return {
+                    "title": cached["youtube_title"],
+                    "description": cached["description"],
+                    "key_points": cached["keypoints"],
+                    "faqs": cached["faqs"],
+                }
+            else:
+                print("Summary not in Cache")
 
 
         #500 requests/day
