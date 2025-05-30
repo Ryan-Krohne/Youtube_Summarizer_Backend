@@ -497,6 +497,7 @@ def summarize():
                     "description": cached["description"],
                     "key_points": cached["keypoints"],
                     "faqs": cached["faqs"],
+                    "video_id": video_id,
                 }
             else:
                 print("Summary not in Cache")
@@ -545,7 +546,7 @@ def summarize():
         key_points = response["key_points"]
         faqs = response["faqs"]
 
-        # ✅ Post to /logs after successful summary
+        # Post to /logs after successful summary
         log_success = insert_log(title, url, video_id, description, key_points, faqs)
 
         if not log_success:
@@ -558,7 +559,8 @@ def summarize():
             "title": title,
             "description": description,
             "key_points": key_points,
-            "faqs": faqs
+            "faqs": faqs,
+            "video_id": video_id,
         })
 
     except Exception as e:
