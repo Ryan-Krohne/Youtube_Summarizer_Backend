@@ -712,6 +712,29 @@ def get_logs():
         print(f"Failed to fetch logs: {e}")
         return jsonify({"error": "Failed to fetch logs"}), 500
 
+@app.route('/api/popular-videos', methods=['GET'])
+def popular_videos():
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT video_id, youtube_title
+            FROM summaries
+            GROUP BY video_id, youtube_title
+            ORDER BY MAX(popularity_score) DESC
+            LIMIT 10;
+        """)
+        rows = cursor.fetchall()
+        cursor.close()
+        conn.close()
+
+        results = [{"video_id": row[0], "youtube_title": row[1]} for row in rows]
+        return jsonify(results)
+
+    except Exception as e:
+        print(f"Error fetching popular videos: {e}")
+        return jsonify({"error": "Failed to fetch popular videos"}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)
