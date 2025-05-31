@@ -712,7 +712,7 @@ def get_logs():
         print(f"Failed to fetch logs: {e}")
         return jsonify({"error": "Failed to fetch logs"}), 500
 
-@app.route('popular_videos', methods=['GET'])
+@app.route('/popular_videos', methods=['GET'])
 def popular_videos():
     try:
         conn = psycopg2.connect(DATABASE_URL)
