@@ -722,7 +722,7 @@ def popular_videos():
             FROM summaries
             GROUP BY video_id, youtube_title
             ORDER BY MAX(popularity_score) DESC
-            LIMIT 10;
+            LIMIT 8s;
         """)
         rows = cursor.fetchall()
         cursor.close()
