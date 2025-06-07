@@ -364,16 +364,28 @@ def Youtube_Transcripts_API(video_id):
 def YouTubeTextConverter(video_id):
     print("3")
     url = "https://youtubetextconverter.p.rapidapi.com/YouTubeCaptions.asp"
-
+    
     querystring = {"vapi": video_id}
-
+    
     headers = {
         "x-rapidapi-key": RAPIDAPI_KEY,
         "x-rapidapi-host": "youtubetextconverter.p.rapidapi.com"
     }
 
-    response = requests.get(url, headers=headers, params=querystring)
-    return (response.text)
+    try:
+        response = requests.get(url, headers=headers, params=querystring)
+        
+        response.raise_for_status()
+
+        if "error" in response.text.lower() or not response.text.strip():
+            print(f"Error or empty response: {response.text}")
+            return None
+        
+        return response.text
+    
+    except requests.RequestException as e:
+        print(f"Request failed: {e}")
+        return None
 
 current_transcript_index = 0
 transcript_functions.append(Youtube_Transcripts)
