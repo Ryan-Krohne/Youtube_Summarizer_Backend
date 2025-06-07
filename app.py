@@ -82,7 +82,7 @@ def insert_log(title, url, video_id, description, key_points, faqs):
 
         cursor.execute(
             '''
-            INSERT INTO logs (youtube_title, youtube_url, video_id, description, key_points, faqs)
+            INSERT INTO summaries (youtube_title, youtube_url, video_id, description, key_points, faqs)
             VALUES (%s, %s, %s, %s, %s, %s)
             ''',
             (title, url, video_id, description, key_points, json.dumps(faqs))
