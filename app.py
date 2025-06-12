@@ -518,6 +518,7 @@ def summarize():
         #500 requests/day
         title, xml_url, duration = get_video_title_and_xmlUrl(video_id)
         print(f"Youtube Title: {title}, Video Duration: {duration}")
+        print(f"Video ID: {video_id}")
 
         if int(duration) > 2700:
             funny_messages = [
