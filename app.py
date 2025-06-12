@@ -48,7 +48,7 @@ def get_cached_summary(video_id):
         cursor.execute(
             '''
             SELECT youtube_title, description, key_points, faqs
-            FROM logs
+            FROM summaries
             WHERE video_id = %s
             LIMIT 1
             ''',
