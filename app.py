@@ -570,6 +570,32 @@ def summarize():
         else:
             print("Errow with summary data, skipped logging")
 
+        errors_messages = [
+            "Our little AI tried its best... then took a nap. Please try again 💤",
+            "Whoops! The summary went on a snack break and forgot to come back 🍪",
+            "We asked the AI to summarize, and it just drew a picture of a cat 🐱",
+            "Summary not found, but the AI made you a friendship bracelet instead 💖",
+            "It tried really hard, but the AI is currently lying face-down on the floor 🐥💫",
+            "Imagine a great summary here. That's the best we've got.",
+            "Nothing happened. Probably for the best.",
+            "Well, something broke. Let's pretend it didn't.",
+            "Oh sure, because getting a perfect summary on the first try is totally realistic.",
+            "Summary? Nah, we're just here to keep you guessing.",
+            "Surprise! The AI has no idea what it's doing either.",
+            "If you wanted perfection, maybe try a magic eight ball instead.",
+            "Congrats! You just experienced the rare 'no-summary' phenomenon.",
+            "Oops, the AI threw a tantrum and shut down.",
+            "Summary? No, but the AI just learned interpretive dance.",
+            "The AI tried to summarize but ended up creating a sandwich recipe instead.",
+            "Your summary is hiding behind the quantum firewall.",
+            "My dog ate your summary (I promise it wasn’t me)."
+        ]
+        
+        if not description or not key_points or not faqs:
+            return jsonify({
+                "error": random.choice(errors_messages),
+                "video_id": video_id
+            }), 400
 
         return jsonify({
             "title": title,
