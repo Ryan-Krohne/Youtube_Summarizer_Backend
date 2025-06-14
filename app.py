@@ -549,7 +549,7 @@ def summarize():
             
         
         if transcript:
-            print("Received Transcript:", transcript)
+            print("\n\n\nReceived Transcript:", transcript)
         else:
             raise ValueError("There are no transcripts available for this video. Try another one.")
 
