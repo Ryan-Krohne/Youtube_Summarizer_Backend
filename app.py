@@ -560,12 +560,15 @@ def summarize():
         faqs = response["faqs"]
 
         # Post to /logs after successful summary
-        log_success = insert_log(title, url, video_id, description, key_points, faqs)
+        if description and key_points and faqs:
+            log_success = insert_log(title, url, video_id, description, key_points, faqs)
 
-        if not log_success:
-            print("Log insertion failed, continuing anyway.")
+            if not log_success:
+                print("Log insertion failed, continuing anyway.")
+            else:
+                print("Logged data")
         else:
-            print("Logged data")
+            print("Errow with summary data, skipped logging")
 
 
         return jsonify({
