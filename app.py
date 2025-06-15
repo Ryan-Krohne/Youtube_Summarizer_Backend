@@ -570,11 +570,11 @@ def summarize():
         if not transcript:
             transcript = roundRobinTranscript(video_id)
             
-        if isinstance(transcript, dict):
-            if "error" in transcript:
-                raise ValueError(f"Transcript fetch failed: {transcript['error']}")
-            else:
-                raise ValueError("Unexpected JSON format for transcript.")
+        # if isinstance(transcript, dict):
+        #     if "error" in transcript:
+        #         raise ValueError(f"Transcript fetch failed: {transcript['error']}")
+        #     else:
+        #         raise ValueError("Unexpected JSON format for transcript.")
             
         
         # Get Summary
@@ -596,6 +596,7 @@ def summarize():
 
         
         if not description or not key_points or not faqs:
+            print(f"One of the following is empty:\n\n Description:\n{description}\n\nKey Points:\n{key_points}\n\nFAQ's:\n{faqs}")
             return jsonify({
                 "error": random.choice(errors_messages),
                 "video_id": video_id
