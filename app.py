@@ -335,6 +335,7 @@ def Youtube_Transcript(video_id):
         return jsonify({"error": "An error occurred.", "details": str(e)}), 500
 
 #https://rapidapi.com/timetravellershq/api/youtube-transcripts-api
+#this might not be working
 def Youtube_Transcripts_API(video_id):
     url = "https://youtube-transcripts-api.p.rapidapi.com/api/transcript/"
     print("2")
@@ -361,6 +362,7 @@ def Youtube_Transcripts_API(video_id):
         return {"error": "Failed to fetch transcript", "status_code": response.status_code}
 
 #https://rapidapi.com/michelemaccini/api/youtubetextconverter
+#this might not work
 def YouTubeTextConverter(video_id):
     print("3")
     url = "https://youtubetextconverter.p.rapidapi.com/YouTubeCaptions.asp"
@@ -547,12 +549,13 @@ def summarize():
         if not transcript:
             transcript = roundRobinTranscript(video_id)
             
+        if isinstance(transcript, dict):
+            if "error" in transcript:
+                raise ValueError(f"Transcript fetch failed: {transcript['error']}")
+            else:
+                raise ValueError("Unexpected JSON format for transcript.")
+            
         
-        if transcript:
-            print("\n\n\nReceived Transcript:", transcript)
-        else:
-            raise ValueError("There are no transcripts available for this video. Try another one.")
-
         # Get Summary
         response = gemini_summary(transcript, faq_dict)
         description = response["description"]
