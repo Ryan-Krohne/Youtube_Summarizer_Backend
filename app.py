@@ -191,7 +191,9 @@ def generate_faqs(title):
         chat_session = model.start_chat()
 
         response = chat_session.send_message(f"""
-        Given the YouTube video title below, identify the top 3 most likely questions a user would have about the video's content *before* watching it. Focus on questions that would help them understand the video's main topic, scope, and key takeaways.
+        You are a journalist whose job is to identify the most important questions a typical viewer would have upon seeing a YouTube video title.\n
+        Given the YouTube video title below, identify the top 3 most likely questions a user would have about the video's content *before* watching it.\n
+        Focus on questions that would help them understand the video's main topic, scope, and key takeaways.
 
         Return the three questions, with each question on a new line and preceded by the delimiter '---QUESTION---'. Do not include any other introductory or concluding text.
 
@@ -575,7 +577,7 @@ def summarize():
         #         raise ValueError(f"Transcript fetch failed: {transcript['error']}")
         #     else:
         #         raise ValueError("Unexpected JSON format for transcript.")
-            
+        
         
         # Get Summary
         response = gemini_summary(transcript, faq_dict)
