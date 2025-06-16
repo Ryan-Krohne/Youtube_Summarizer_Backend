@@ -193,8 +193,8 @@ def generate_faqs(title):
         response = chat_session.send_message(f"""
         You are a journalist whose job is to identify the most important questions a typical viewer would have upon seeing a YouTube video title.\n
         Given the YouTube video title below, identify the top 3 most likely questions a user would have about the video's content *before* watching it.\n
-        Focus on questions that would help them understand the video's main topic, scope, and key takeaways.
-
+        You are to write them in order of most important, focusing on quesions that ideally tie into the title of the video.
+    
         Return the three questions, with each question on a new line and preceded by the delimiter '---QUESTION---'. Do not include any other introductory or concluding text.
 
         Here is the Title: {title}
