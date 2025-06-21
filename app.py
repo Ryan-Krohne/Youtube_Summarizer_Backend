@@ -585,7 +585,7 @@ def summarize():
         key_points = response["key_points"]
         faqs = response["faqs"]
 
-        # Post to /logs after successful summary
+        # Logs summaries after successful summary
         if description and key_points and faqs:
             log_success = insert_log(title, url, video_id, description, key_points, faqs)
 
@@ -721,15 +721,6 @@ def faq():
     else:
         return "No transcript provided."
 
-@app.route('/test', methods=['GET'])
-def test_endpoint():
-    """A simple test endpoint that returns a JSON message."""
-    return jsonify({"message": "Hello from the test API!"})
-
-@app.route('/time-error', methods=['GET'])
-def test_error():
-    # Always returns an error with a 400 status code
-    return jsonify({"error": "This is a test error. Something went wrong!"}), 400
 
 # POST endpoint to insert a log when a video is summarized
 @app.route('/log', methods=['POST'])
@@ -745,23 +736,6 @@ def create_log():
         return jsonify({"message": "Log created successfully"}), 201
     else:
         return jsonify({"error": "Failed to create log"}), 500
-
-# GET endpoint to fetch all logs
-@app.route('/logs', methods=['GET'])
-def get_logs():
-    try:
-        conn = psycopg2.connect(DATABASE_URL)
-        cursor = conn.cursor()
-        cursor.execute('SELECT id, youtube_title, youtube_url FROM logs ORDER BY id DESC')
-        rows = cursor.fetchall()
-        cursor.close()
-        conn.close()
-
-        logs = [{"id": row[0], "youtube_title": row[1], "youtube_url": row[2]} for row in rows]
-        return jsonify(logs), 200
-    except Exception as e:
-        print(f"Failed to fetch logs: {e}")
-        return jsonify({"error": "Failed to fetch logs"}), 500
 
 @app.route('/popular_videos', methods=['GET'])
 def popular_videos():
