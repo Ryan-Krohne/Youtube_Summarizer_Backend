@@ -580,13 +580,6 @@ def summarize():
 
         if not transcript:
             transcript = roundRobinTranscript(video_id)
-            
-        # if isinstance(transcript, dict):
-        #     if "error" in transcript:
-        #         raise ValueError(f"Transcript fetch failed: {transcript['error']}")
-        #     else:
-        #         raise ValueError("Unexpected JSON format for transcript.")
-        
         
         # Get Summary
         response = gemini_summary(transcript, faq_dict)
@@ -594,18 +587,6 @@ def summarize():
         key_points = response["key_points"]
         faqs = response["faqs"]
 
-        # Logs summaries after successful summary
-        if description and key_points and faqs:
-            log_success = insert_summary(title, url, video_id, description, key_points, faqs)
-
-            if not log_success:
-                print("Log insertion failed, continuing anyway.")
-            else:
-                print("Logged data")
-        else:
-            print("Errow with summary data, skipped logging")
-
-        
         if not description or not key_points or not faqs:
             print(f"One of the following is empty:\n\n Description:\n{description}\n\nKey Points:\n{key_points}\n\nFAQ's:\n{faqs}")
             return jsonify({
@@ -765,6 +746,26 @@ def popular_videos():
     except Exception as e:
         print(f"Error fetching popular videos: {e}")
         return jsonify({"error": "Failed to fetch popular videos"}), 500
+
+#I NEED TO PROTECT THIS!!!
+@app.route('/log_summary', methods=['POST'])
+def log_summary():
+    data = request.get_json()
+
+    # Extract fields from request JSON
+    title = data.get('title')
+    url = data.get('url')
+    video_id = data.get('video_id')
+    description = data.get('description')
+    key_points = data.get('key_points')
+    faqs = data.get('faqs')
+
+    success = insert_summary(title, url, video_id, description, key_points, faqs)
+
+    if success:
+        return jsonify({"status": "logged"}), 200
+    else:
+        return jsonify({"error": "logging failed"}), 500
 
 
 if __name__ == '__main__':
