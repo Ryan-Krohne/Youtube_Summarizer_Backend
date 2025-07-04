@@ -544,6 +544,7 @@ def summarize():
                     "key_points": cached["keypoints"],
                     "faqs": cached["faqs"],
                     "video_id": video_id,
+                    "needs_logging": False,
                 }
             else:
                 print("Summary not in Cache")
@@ -600,6 +601,7 @@ def summarize():
             "key_points": key_points,
             "faqs": faqs,
             "video_id": video_id,
+            "needs_logging": True,
         })
 
     except Exception as e:
