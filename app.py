@@ -61,6 +61,15 @@ errors_messages = [
             "My dog ate your summary (I promise it wasn’t me)."
         ]
 
+
+cache = {
+    "data": None,
+    "timestamp": 0
+}
+CACHE_TTL = 8640
+
+
+
 def get_cached_summary(video_id):
     try:
         conn = psycopg2.connect(DATABASE_URL)
@@ -725,6 +734,12 @@ def faq():
 @app.route('/popular_videos', methods=['GET'])
 def popular_videos():
     try:
+
+        current_time = time.time()
+        if cache["data"] and (current_time - cache["timestamp"] < CACHE_TTL):
+            return jsonify(cache["data"])
+
+
         conn = psycopg2.connect(DATABASE_URL)
         cursor = conn.cursor()
         cursor.execute("""
@@ -739,7 +754,13 @@ def popular_videos():
         conn.close()
 
         results = [{"video_id": row[0], "youtube_title": row[1]} for row in rows]
+        
+        cache["data"] = results
+        cache["timestamp"] = current_time
+        
         return jsonify(results)
+    
+        
 
     except Exception as e:
         print(f"Error fetching popular videos: {e}")
