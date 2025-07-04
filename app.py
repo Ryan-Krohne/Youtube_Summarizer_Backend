@@ -96,7 +96,7 @@ def get_cached_summary(video_id):
         print(f"Error querying cached summary: {e}")
         return None
 
-def insert_log(title, url, video_id, description, key_points, faqs):
+def insert_summary(title, url, video_id, description, key_points, faqs):
     try:
         conn = psycopg2.connect(DATABASE_URL)
         cursor = conn.cursor()
@@ -587,7 +587,7 @@ def summarize():
 
         # Logs summaries after successful summary
         if description and key_points and faqs:
-            log_success = insert_log(title, url, video_id, description, key_points, faqs)
+            log_success = insert_summary(title, url, video_id, description, key_points, faqs)
 
             if not log_success:
                 print("Log insertion failed, continuing anyway.")
@@ -721,21 +721,6 @@ def faq():
     else:
         return "No transcript provided."
 
-
-# POST endpoint to insert a log when a video is summarized
-@app.route('/log', methods=['POST'])
-def create_log():
-    data = request.get_json()
-    youtube_title = data.get('youtube_title')
-    youtube_url = data.get('youtube_url')
-
-    if not youtube_title or not youtube_url:
-        return jsonify({"error": "youtube_title and youtube_url are required"}), 400
-
-    if insert_log(youtube_title, youtube_url):
-        return jsonify({"message": "Log created successfully"}), 201
-    else:
-        return jsonify({"error": "Failed to create log"}), 500
 
 @app.route('/popular_videos', methods=['GET'])
 def popular_videos():
