@@ -762,7 +762,6 @@ def popular_videos():
         print(f"Error fetching popular videos: {e}")
         return jsonify({"error": "Failed to fetch popular videos"}), 500
 
-#I NEED TO PROTECT THIS!!!
 @app.route('/log_summary', methods=['POST'])
 def log_summary():
     data = request.get_json()
