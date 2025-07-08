@@ -126,6 +126,28 @@ def insert_summary(title, url, video_id, description, key_points, faqs):
         print(f"Failed to insert log: {e}")
         return False
 
+
+def insert_log_entry(video_title, video_url, status_code, request_date=None):
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        cursor = conn.cursor()
+
+        cursor.execute(
+            '''
+            INSERT INTO insert_logs (video_title, video_url, status_code, request_date)
+            VALUES (%s, %s, %s, %s)
+            ''',
+            (video_title, video_url, status_code, request_date)
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"Failed to insert log: {e}")
+        return False
+
 def gemini_summary(transcript, faqs):
     try:
         answers_dict = {}
