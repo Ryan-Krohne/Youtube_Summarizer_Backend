@@ -803,6 +803,23 @@ def log_summary():
     else:
         return jsonify({"error": "logging failed"}), 500
 
+@app.route('/log_status', methods=['POST'])
+def log_status():
+    data = request.get_json()
+
+    # Extract fields from request JSON
+    video_title = data.get('video_title')
+    video_url = data.get('video_url')
+    status_code = data.get('status_code')
+    request_date = data.get('request_date')
+
+    success = insert_log_entry(video_title, video_url, status_code, request_date)
+
+    if success:
+        return jsonify({"status": "logged"}), 200
+    else:
+        return jsonify({"error": "logging failed"}), 500
+    
 
 if __name__ == '__main__':
     app.run(debug=True)
