@@ -556,14 +556,17 @@ def summarize():
         print(f"Video ID: {video_id}")
 
         if int(duration) > 2700:
-            funny_messages = [
+            duration_limit_error_messages = [
                 "Nice try, but I don’t do marathons. Keep it under 45 minutes.",
                 "I summarize videos, not cinematic universes. 45 minutes max!",
                 "Attention span exceeded. Try something snack-sized (< 45 mins).",
                 "If it needs popcorn, it's too long. 45-minute limit in effect.",
                 "This ain’t a podcast. Keep it under 45 mins, champ.",
             ]
-            return jsonify({"error": random.choice(funny_messages)}), 400
+            return jsonify({
+                "error": "45 mins exceeded",
+                "message": random.choice(duration_limit_error_messages)
+            }), 400
 
         faq_dict=generate_faqs(title)
         
@@ -588,10 +591,20 @@ def summarize():
         key_points = response["key_points"]
         faqs = response["faqs"]
 
-        if not description or not key_points or not faqs:
-            print(f"One of the following is empty:\n\n Description:\n{description}\n\nKey Points:\n{key_points}\n\nFAQ's:\n{faqs}")
+        #Exception Handling for missing data
+        missing_fields = []
+        if not description:
+            missing_fields.append("description")
+        if not key_points:
+            missing_fields.append("key_points")
+        if not faqs:
+            missing_fields.append("faqs")
+
+        if missing_fields:
+            missing_str = ", ".join(missing_fields)
             return jsonify({
-                "error": random.choice(errors_messages),
+                "message": random.choice(errors_messages),
+                "error": f"Missing fields: {missing_str}",
                 "video_id": video_id
             }), 400
 
@@ -605,9 +618,9 @@ def summarize():
         })
 
     except Exception as e:
-        print(f"Unexpected error: {str(e)}")
         return jsonify({
-            "error": random.choice(errors_messages),
+            "error": str(e),
+            "message": random.choice(errors_messages),
         }), 400
 
 @app.route('/testing', methods=['POST'])
