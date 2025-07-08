@@ -134,7 +134,7 @@ def insert_log_entry(video_title, video_url, status_code, request_date=None):
 
         cursor.execute(
             '''
-            INSERT INTO insert_logs (video_title, video_url, status_code, request_date)
+            INSERT INTO logs (video_title, video_url, status_code, request_date)
             VALUES (%s, %s, %s, %s)
             ''',
             (video_title, video_url, status_code, request_date)
