@@ -69,6 +69,9 @@ cache = {
 CACHE_TTL = 8640
 
 
+def fix_bullet_spacing(text):
+    fixed_text = re.sub(r'(?m)(^-\s[^\n]+?)(\n(?!\n)|(?=\Z))', r'\1\n\n', text)
+    return fixed_text
 
 def get_cached_summary(video_id):
     try:
@@ -609,7 +612,7 @@ def summarize():
         
         # Get Summary
         response = gemini_summary(transcript, faq_dict)
-        description = response["description"]
+        description = fix_bullet_spacing(response["description"])
         key_points = response["key_points"]
         faqs = response["faqs"]
 
