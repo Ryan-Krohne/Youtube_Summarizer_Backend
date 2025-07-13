@@ -673,7 +673,7 @@ def summarize():
 
         # Get video title and XML URL
         step_start = time.time()
-        title, xml_url, duration = get_video_title_and_xmlUrl(video_id)
+        title, xml_url, duration = get_video_title_and_xmlUrl(video_id) #TODO: Eventually switch to youtube api
         print(f"Time to get video title and XML URL: {time.time() - step_start:.2f}s")
         print(f"Youtube Title: {title}, Video Duration: {duration}")
         print(f"Video ID: {video_id}")
