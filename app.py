@@ -551,21 +551,30 @@ scheduler.start()
 def summarize():
     
     try:
-        #Get URL
+        start_total = time.time()
+
+        # Get URL and parse JSON
+        step_start = time.time()
         data = request.get_json()
         url = data.get('url')
         refresh = data.get('refresh', False)
         print(f"\n\nReceived request to summarize: {url} | Refresh: {refresh}")
+        print(f"Time to get URL and parse JSON: {time.time() - step_start:.2f}s")
 
-        #Get Video ID
+        # Get Video ID
+        step_start = time.time()
         video_id = extract_video_id(url)
+        print(f"Time to extract video ID: {time.time() - step_start:.2f}s")
 
         # Only attempt to use cache if refresh is False
         if not refresh:
+            step_start = time.time()
             print("Checking cache...")
             cached = get_cached_summary(video_id)
+            print(f"Time to check cache: {time.time() - step_start:.2f}s")
             if cached:
                 print("Returning cached summary.")
+                print(f"Total processing time: {time.time() - start_total:.2f}s")
                 return {
                     "title": cached["youtube_title"],
                     "description": cached["description"],
@@ -577,9 +586,10 @@ def summarize():
             else:
                 print("Summary not in Cache")
 
-
-        #500 requests/day
+        # Get video title and XML URL
+        step_start = time.time()
         title, xml_url, duration = get_video_title_and_xmlUrl(video_id)
+        print(f"Time to get video title and XML URL: {time.time() - step_start:.2f}s")
         print(f"Youtube Title: {title}, Video Duration: {duration}")
         print(f"Video ID: {video_id}")
 
@@ -596,13 +606,19 @@ def summarize():
                 "message": random.choice(duration_limit_error_messages)
             }), 400
 
-        faq_dict=generate_faqs(title)
-        
-        transcript=""
+        # Generate FAQs
+        step_start = time.time()
+        faq_dict = generate_faqs(title)
+        print(f"Time to generate FAQs: {time.time() - step_start:.2f}s")
 
+        transcript = ""
+
+        # Get transcript from XML URL if available
         if xml_url:
             print(f"There is an XML URL: {xml_url}\n")
-            transcript=get_transcript_from_xml_url(xml_url)
+            step_start = time.time()
+            transcript = get_transcript_from_xml_url(xml_url)
+            print(f"Time to get transcript: {time.time() - step_start:.2f}s")
             if transcript:
                 print("XML Succeeded")
             else:
@@ -610,16 +626,25 @@ def summarize():
         else:
             print("There is NO XML URL")
 
+        # Fallback transcript if no XML transcript
         if not transcript:
+            step_start = time.time()
             transcript = roundRobinTranscript(video_id)
-        
-        # Get Summary
+            print(f"Time to get fallback transcript: {time.time() - step_start:.2f}s")
+
+        # Generate summary using AI
+        step_start = time.time()
         response = gemini_summary(transcript, faq_dict)
+        print(f"Time to generate summary: {time.time() - step_start:.2f}s")
+
+        # Fix spacing and extract parts
+        step_start = time.time()
         description = fix_bullet_spacing(response["description"])
         key_points = response["key_points"]
         faqs = response["faqs"]
+        print(f"Time to validate output: {time.time() - step_start:.2f}s")
 
-        #Exception Handling for missing data
+        # Exception handling for missing data
         missing_fields = []
         if not description:
             missing_fields.append("description")
@@ -635,6 +660,8 @@ def summarize():
                 "error": f"Missing fields: {missing_str}",
                 "video_id": video_id
             }), 400
+
+        print(f"Total processing time: {time.time() - start_total:.2f}s")
 
         return jsonify({
             "title": title,
