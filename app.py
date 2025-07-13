@@ -32,8 +32,6 @@ connection_pool = pool.SimpleConnectionPool(
 redis_url = os.getenv("REDIS_URL")
 redis_client = redis.from_url(redis_url, decode_responses=True)
 
-
-
 # List of functions for getting transcripts
 transcript_functions = []
 
@@ -72,7 +70,6 @@ errors_messages = [
             "Your summary is hiding behind the quantum firewall.",
             "My dog ate your summary (I promise it wasn’t me)."
         ]
-
 
 cache = {
     "data": None,
@@ -341,7 +338,6 @@ def get_transcript_from_xml_url(xml_url):
       return ""
   except (requests.exceptions.RequestException, ET.ParseError) as e:
     return {"error": f"Error processing XML: {str(e)}"}
-
 
 #https://rapidapi.com/8v2FWW4H6AmKw89/api/youtube-transcripts
 def Youtube_Transcripts(video_id):
