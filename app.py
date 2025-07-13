@@ -546,39 +546,27 @@ def update_popular_videos_cache():
         cursor = conn.cursor()
 
         cursor.execute("""
-            SELECT video_id, youtube_title, description, key_points, faqs
+            SELECT video_id, youtube_title
             FROM summaries
-            ORDER BY popularity_score DESC
+            GROUP BY video_id, youtube_title
+            ORDER BY MAX(popularity_score) DESC
             LIMIT 8;
         """)
         rows = cursor.fetchall()
         cursor.close()
         connection_pool.putconn(conn)
 
-        popular_videos_data = []
-        for row in rows:
-            video_id, title, description, key_points, faqs = row
-            summary_data = {
-                "video_id": video_id,
-                "youtube_title": title,
-                "description": description,
-                "key_points": key_points,
-                "faqs": faqs,
-            }
-            popular_videos_data.append(summary_data)
+        results = [{"video_id": row[0], "youtube_title": row[1]} for row in rows]
 
-            # Cache individual summary by video_id
-            redis_client.set(f"cache:summary:{video_id}", json.dumps(summary_data), ex=3600)
-
-        # Cache the full popular videos list with summaries
-        redis_client.set("cache:popular_videos_full", json.dumps(popular_videos_data), ex=3600)
+        # Cache the result with TTL (1 hour)
+        redis_client.set("cache:popular_videos", json.dumps(results), ex=3600)
 
         print("Popular videos cache updated successfully.")
 
     except Exception as e:
         print(f"Error updating popular videos cache: {e}")
 
-
+update_popular_videos_cache()
 scheduler = BackgroundScheduler()
 scheduler.add_job(func=ping_self, trigger="interval", minutes=14)
 scheduler.add_job(func=update_popular_videos_cache, trigger="interval", minutes=58)
