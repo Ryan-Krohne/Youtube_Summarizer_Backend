@@ -12,8 +12,8 @@ import xml.etree.ElementTree as ET
 import os
 import google.generativeai as genai
 import random
-import psycopg2
 import json
+from psycopg2 import pool
 
 app = Flask(__name__)
 CORS(app)
@@ -21,6 +21,12 @@ RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
 client = OpenAI()
 
 DATABASE_URL = os.getenv("YOUTUBE_STATISTICS_DB_URL")
+
+connection_pool = pool.SimpleConnectionPool(
+    minconn=1,
+    maxconn=10,
+    dsn=DATABASE_URL
+)
 
 # List of functions for getting transcripts
 transcript_functions = []
@@ -74,10 +80,9 @@ def fix_bullet_spacing(text):
     return fixed_text
 
 def get_cached_summary(video_id):
+    conn = connection_pool.getconn()
     try:
-        conn = psycopg2.connect(DATABASE_URL)
         cursor = conn.cursor()
-
         cursor.execute(
             '''
             SELECT youtube_title, description, key_points, faqs
@@ -87,11 +92,8 @@ def get_cached_summary(video_id):
             ''',
             (video_id,)
         )
-
         result = cursor.fetchone()
         cursor.close()
-        conn.close()
-
         if result:
             youtube_title, description, keypoints, faqs_jsonb = result
             faqs = faqs_jsonb  # already a dict
@@ -101,16 +103,14 @@ def get_cached_summary(video_id):
                 "keypoints": keypoints,
                 "faqs": faqs,
             }
-
         else:
             return None
-    except Exception as e:
-        print(f"Error querying cached summary: {e}")
-        return None
-
+    finally:
+        connection_pool.putconn(conn)
+        
 def insert_summary(title, url, video_id, description, key_points, faqs):
     try:
-        conn = psycopg2.connect(DATABASE_URL)
+        conn = connection_pool.getconn()
         cursor = conn.cursor()
 
         cursor.execute(
@@ -123,16 +123,17 @@ def insert_summary(title, url, video_id, description, key_points, faqs):
 
         conn.commit()
         cursor.close()
-        conn.close()
-        return True
     except Exception as e:
         print(f"Failed to insert log: {e}")
         return False
+    finally:
+        connection_pool.putconn(conn)
+    return True
 
 
 def insert_log_entry(video_title, video_url, status_code, request_date=None):
     try:
-        conn = psycopg2.connect(DATABASE_URL)
+        conn = connection_pool.getconn()
         cursor = conn.cursor()
 
         cursor.execute(
@@ -145,11 +146,13 @@ def insert_log_entry(video_title, video_url, status_code, request_date=None):
 
         conn.commit()
         cursor.close()
-        conn.close()
-        return True
     except Exception as e:
         print(f"Failed to insert log: {e}")
         return False
+    finally:
+        connection_pool.putconn(conn)  # Return connection to pool
+    return True
+
 
 def gemini_summary(transcript, faqs):
     try:
@@ -755,13 +758,11 @@ def faq():
 @app.route('/popular_videos', methods=['GET'])
 def popular_videos():
     try:
-
         current_time = time.time()
         if cache["data"] and (current_time - cache["timestamp"] < CACHE_TTL):
             return jsonify(cache["data"])
 
-
-        conn = psycopg2.connect(DATABASE_URL)
+        conn = connection_pool.getconn()  # Get connection from pool
         cursor = conn.cursor()
         cursor.execute("""
             SELECT video_id, youtube_title
@@ -772,20 +773,18 @@ def popular_videos():
         """)
         rows = cursor.fetchall()
         cursor.close()
-        conn.close()
-
-        results = [{"video_id": row[0], "youtube_title": row[1]} for row in rows]
-        
-        cache["data"] = results
-        cache["timestamp"] = current_time
-        
-        return jsonify(results)
-    
-        
-
     except Exception as e:
         print(f"Error fetching popular videos: {e}")
         return jsonify({"error": "Failed to fetch popular videos"}), 500
+    finally:
+        if 'conn' in locals():
+            connection_pool.putconn(conn)
+
+    results = [{"video_id": row[0], "youtube_title": row[1]} for row in rows]
+    cache["data"] = results
+    cache["timestamp"] = current_time
+
+    return jsonify(results)
 
 @app.route('/log_summary', methods=['POST'])
 def log_summary():
