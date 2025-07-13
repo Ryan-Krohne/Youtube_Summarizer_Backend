@@ -80,7 +80,6 @@ cache = {
 }
 CACHE_TTL = 8640
 
-
 def fix_bullet_spacing(text):
     fixed_text = re.sub(r'(?m)(^-\s[^\n]+?)(\n(?!\n)|(?=\Z))', r'\1\n\n', text)
     return fixed_text
@@ -136,7 +135,6 @@ def insert_summary(title, url, video_id, description, key_points, faqs):
         connection_pool.putconn(conn)
     return True
 
-
 def insert_log_entry(video_title, video_url, status_code, request_date=None):
     try:
         conn = connection_pool.getconn()
@@ -158,7 +156,6 @@ def insert_log_entry(video_title, video_url, status_code, request_date=None):
     finally:
         connection_pool.putconn(conn)  # Return connection to pool
     return True
-
 
 def gemini_summary(transcript, faqs):
     try:
@@ -227,7 +224,6 @@ def gemini_summary(transcript, faqs):
         print(f"Error occurred while fetching the summary and FAQs: {e}")
         return None
 
-
 def generate_faqs(title):
     try:
         # Start the chat session and send the message to the model
@@ -257,7 +253,6 @@ def generate_faqs(title):
     except Exception as e:
         print(f"Error occurred while fetching the faqs: {e}")
         return None
-
 
 #Functions
 def extract_video_id(url):
@@ -305,7 +300,6 @@ def get_video_title(video_id):
     except ValueError as e:
         print(f"Error extracting title: {e}")
         return None
-
 
 #https://rapidapi.com/ytjar/api/yt-api
 def get_video_title_and_xmlUrl(video_id):
@@ -481,9 +475,6 @@ def roundRobinTranscript(video_id):
     print("Failed to retrieve transcript using all available methods.")
     return None  # Or raise an exception here if you prefer
 
-
-
-
 def get_video_summary(transcript):
     print("\n\nTALKING TO GPT RIGHT NOW!!!!!!\n\n")
     try:
@@ -533,7 +524,6 @@ def get_video_summary(transcript):
     except Exception as e:
         print(f"Error occurred while fetching the summary: {e}")
         return None 
-
 
 def ping_self():
     try:
@@ -589,14 +579,13 @@ def update_popular_videos_cache():
         print(f"Error updating popular videos cache: {e}")
 
 
-
 scheduler = BackgroundScheduler()
 scheduler.add_job(func=ping_self, trigger="interval", minutes=14)
 scheduler.add_job(func=update_popular_videos_cache, trigger="interval", minutes=58)
 scheduler.start()
 
-
 #-------------------------------------------------- Flask Api's --------------------------------------------------
+
 @app.route('/summarize', methods=['POST'])
 def summarize():
     
@@ -773,7 +762,6 @@ def ping():
 def home():
     return "Flask app is running!"
 
-
 @app.route('/get-transcript', methods=['GET'])
 def get_transcript():
 # URL of the YouTube timed text (XML transcript)
@@ -807,7 +795,6 @@ def get_transcript():
     else:
         return jsonify({"error": f"Failed to retrieve the XML data. Status code: {response.status_code}"}), 500
 
-
 @app.route('/gemini_test', methods=['GET'])
 def gemini_test():
     transcript = '''saying when I get older I'm just gonna hop on trt it just seems like there's like this like idea that trt is essentially like it's kind of like the Natty way it's like it's like people don't associate it with anabolics they're just like oh yeah I'm getting older I'm gonna hop on trt why do you think people see it that way um yeah it's tough because a lot of the literature that has come out is addressing true hypogonadism so if somebody has for example primary hypogonadism is literally when your testies don't respond to the signaling hormones from your brain to the testes so it's literally not responsive enough to make an adequate amount of testosterone to function properly in that case that guy needs trt essentially because what else are you going to do those studies will get conflated often with you know those outcomes were good equals I should be on trt to optimize as well but then the spectrum of risk like I said there's a a reference range on uh blood tests that you'll see that goes from as low as 270 upwards of like 1,200 depending on the lab some of it is more narrow like in Canada we have I don't know it's like 300 to 900 or something absurd and then in the US some places will go up to 1100 it kind of depends but at the end of the day there's obviously a difference between 350 and a th000 in terms of how much andro enens are floating around in your blood so to say that I'm on trt at a th000 versus I'm on trt at 600 it's like you're technically on replacement based on a therapeutic reference range at both of those amounts but how much did you actually need to replace you know the the r and trt how much did you need to replace what you naturally produced typically a lot of guys that are you know not doing the actual clinical guided way of doing trt they are kind of picking what their replacement is which is fine you can do whatever you want and that's not to say that's a bad thing again it's just a spectrum of risk because you know was you could also argue maybe the amount you produce naturally wasn't satisfactory to begin with maybe it'd be better off with a higher amount so it's all dependent on where you land and then also what you actually need to fulfill functions in the body so you'll often see 200 milligrams a week as a standard cookie cutter dose now but that's I would argue in most cases like mini baby cycle territory essentially perpetually is the yeah and this is again some people actually need more than that to achieve therapeutic replacement or symptom relief I should say more specifically but that's few and far between and just because one guy needs that it doesn't mean you need it as well so it's all like the the dose is all individual dependent based on what you need and like your original question was you know people are thinking they need it or I should just be on it not it's not the case typically that people need that high of a dose and often times it is a little bit of a cop out for wanting to optimize to a like sports trt level is what people often call it but and that's not to say that that's bad or good you just need to be cognizant of the underlying risk under that because it is not the equivalent of a study using andrel that brings guys from pipo gadle to a 550 total like you at 1,200 on injectable testosterone and anate every week is not the same as a hypogonadal guy going from 200 to 500 on Andel like conflating the two is not Apples to Apples so as long as you're on top of your health metrics though and you're Highly Educated about what you're doing at a real level because a lot of guys are very very disconnected with what they're actually doing they think they're on trt but it's like you're you're on Mini enhancement territory let's just level with what it actually is and just be aware of that and that's fine no one's going to judge you hopefully but you just need to like proactively take care of it accordingly through your uh screening and make sure ou're not putting yourself i'''
@@ -830,7 +817,6 @@ def faq():
         return faqs
     else:
         return "No transcript provided."
-
 
 @app.route('/popular_videos', methods=['GET'])
 def popular_videos():
@@ -909,7 +895,6 @@ def log_status():
         return jsonify({"status": "logged"}), 200
     else:
         return jsonify({"error": "logging failed"}), 500
-    
 
 if __name__ == '__main__':
     app.run(debug=True)
