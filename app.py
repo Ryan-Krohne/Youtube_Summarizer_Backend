@@ -82,6 +82,14 @@ def fix_bullet_spacing(text):
     return fixed_text
 
 def get_cached_summary(video_id):
+    # Check Redis first
+    redis_key = f"cache:summary:{video_id}"
+    cached = redis_client.get(redis_key)
+    if cached:
+        print(f"Cache hit for {redis_key}")
+        return json.loads(cached)
+
+    print(f"Cache miss for {redis_key} — querying DB...")
     conn = connection_pool.getconn()
     try:
         cursor = conn.cursor()
@@ -99,17 +107,18 @@ def get_cached_summary(video_id):
         if result:
             youtube_title, description, keypoints, faqs_jsonb = result
             faqs = faqs_jsonb  # already a dict
-            return {
+            summary = {
                 "youtube_title": youtube_title,
                 "description": description,
                 "keypoints": keypoints,
                 "faqs": faqs,
             }
+            return summary
         else:
             return None
     finally:
         connection_pool.putconn(conn)
-        
+    
 def insert_summary(title, url, video_id, description, key_points, faqs):
     try:
         conn = connection_pool.getconn()
