@@ -14,6 +14,7 @@ import google.generativeai as genai
 import random
 import json
 from psycopg2 import pool
+import redis
 
 app = Flask(__name__)
 CORS(app)
@@ -27,6 +28,11 @@ connection_pool = pool.SimpleConnectionPool(
     maxconn=10,
     dsn=DATABASE_URL
 )
+
+redis_url = os.getenv("REDIS_URL")
+redis_client = redis.from_url(redis_url, decode_responses=True)
+
+
 
 # List of functions for getting transcripts
 transcript_functions = []
@@ -784,12 +790,19 @@ def faq():
 
 @app.route('/popular_videos', methods=['GET'])
 def popular_videos():
-    try:
-        current_time = time.time()
-        if cache["data"] and (current_time - cache["timestamp"] < CACHE_TTL):
-            return jsonify(cache["data"])
+    start_time = time.time()
 
-        conn = connection_pool.getconn()  # Get connection from pool
+    try:
+        # Check Redis cache first
+        cached = redis_client.get("cache:popular_videos")
+        if cached:
+            print("Returning cached popular videos")
+            total_time = time.time() - start_time
+            print(f"API total time (cache hit): {total_time:.4f}s")
+            return jsonify(json.loads(cached))
+
+        # Cache miss → Query the database
+        conn = connection_pool.getconn()
         cursor = conn.cursor()
         cursor.execute("""
             SELECT video_id, youtube_title
@@ -800,18 +813,22 @@ def popular_videos():
         """)
         rows = cursor.fetchall()
         cursor.close()
+        connection_pool.putconn(conn)
+
+        results = [{"video_id": row[0], "youtube_title": row[1]} for row in rows]
+
+        # Cache the result with TTL (e.g., 3600 seconds = 1 hour)
+        redis_client.set("cache:popular_videos", json.dumps(results), ex=3600)
+
+        total_time = time.time() - start_time
+        print(f"API total time (cache miss): {total_time:.4f}s")
+        return jsonify(results)
+
     except Exception as e:
         print(f"Error fetching popular videos: {e}")
+        total_time = time.time() - start_time
+        print(f"API total time (error): {total_time:.4f}s")
         return jsonify({"error": "Failed to fetch popular videos"}), 500
-    finally:
-        if 'conn' in locals():
-            connection_pool.putconn(conn)
-
-    results = [{"video_id": row[0], "youtube_title": row[1]} for row in rows]
-    cache["data"] = results
-    cache["timestamp"] = current_time
-
-    return jsonify(results)
 
 @app.route('/log_summary', methods=['POST'])
 def log_summary():
