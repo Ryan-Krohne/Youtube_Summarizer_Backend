@@ -562,10 +562,63 @@ def update_popular_videos_cache():
     except Exception as e:
         print(f"Error updating popular videos cache: {e}")
 
-update_popular_videos_cache()
+def update_summaries_cache():
+    try:
+        print("Updating summaries cache for top 8 unique videos...")
+
+        for key in redis_client.scan_iter("cache:summary:*"):
+            redis_client.delete(key)
+        print("🧹 Cleared old summary cache keys.")
+
+
+        conn = connection_pool.getconn()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT DISTINCT ON (video_id)
+                video_id, youtube_title, description, key_points, faqs
+            FROM summaries
+            ORDER BY video_id, popularity_score DESC
+            LIMIT 8;
+        """)
+        rows = cursor.fetchall()
+
+        print(f"Fetched {len(rows)} rows for caching.")
+
+        seen_keys = set()
+        for row in rows:
+            video_id, youtube_title, description, key_points, faqs_jsonb = row
+
+            redis_key = f"cache:summary:{video_id}"
+            if redis_key in seen_keys:
+                print(f"⚠️ Duplicate key detected: {redis_key}")
+            seen_keys.add(redis_key)
+
+            summary_data = {
+                "youtube_title": youtube_title,
+                "description": description,
+                "keypoints": key_points,
+                "faqs": faqs_jsonb,
+            }
+
+            redis_client.set(redis_key, json.dumps(summary_data), ex=3600)
+            print(f"✅ Cached: {redis_key}")
+
+        cursor.close()
+        connection_pool.putconn(conn)
+
+        print("Summaries cache updated successfully.")
+
+    except Exception as e:
+        print(f"❌ Error updating summaries cache: {e}")
+
+update_summaries_cache()
+update_popular_videos_cache
+
 scheduler = BackgroundScheduler()
 scheduler.add_job(func=ping_self, trigger="interval", minutes=14)
 scheduler.add_job(func=update_popular_videos_cache, trigger="interval", minutes=58)
+scheduler.add_job(func=update_summaries_cache, trigger="interval", minutes=58)
 scheduler.start()
 
 #-------------------------------------------------- Flask Api's --------------------------------------------------
@@ -881,4 +934,4 @@ def log_status():
         return jsonify({"error": "logging failed"}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
