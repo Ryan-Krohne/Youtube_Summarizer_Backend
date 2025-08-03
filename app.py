@@ -163,6 +163,30 @@ def insert_log_entry(video_title, video_url, status_code):
         connection_pool.putconn(conn)  # Return connection to pool
     return True
 
+def increment_times_summarized(video_id):
+    try:
+        conn = connection_pool.getconn()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            '''
+            UPDATE summaries
+            SET times_summarized = times_summarized + 1
+            WHERE video_id = %s
+            ''',
+            (video_id,)
+        )
+
+        conn.commit()
+        cursor.close()
+    except Exception as e:
+        print(f"Failed to increment times_summarized: {e}")
+        return False
+    finally:
+        connection_pool.putconn(conn)
+    return True
+
+
 def gemini_summary(transcript, faqs):
     try:
         answers_dict = {}
@@ -941,6 +965,21 @@ def log_status():
         return jsonify({"status": "logged"}), 200
     else:
         return jsonify({"error": "logging failed"}), 500
+
+
+@app.route('/increment_count', methods=['POST'])
+def increment_count():
+    data = request.get_json()
+
+    # Extract fields from request JSON
+    video_id = data.get('video_id')
+
+    success = increment_times_summarized(video_id)
+
+    if success:
+        return jsonify({"status": "successfully incremented"}), 200
+    else:
+        return jsonify({"error": "increment failed"}), 500
 
 if __name__ == '__main__':
     app.run(debug=False)
