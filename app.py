@@ -141,17 +141,17 @@ def insert_summary(title, url, video_id, description, key_points, faqs):
         connection_pool.putconn(conn)
     return True
 
-def insert_log_entry(video_title, video_url, status_code, request_date=None):
+def insert_log_entry(video_title, video_url, status_code):
     try:
         conn = connection_pool.getconn()
         cursor = conn.cursor()
 
         cursor.execute(
             '''
-            INSERT INTO logs (video_title, video_url, status_code, request_date)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO logs (video_title, video_url, status_code)
+            VALUES (%s, %s, %s)
             ''',
-            (video_title, video_url, status_code, request_date)
+            (video_title, video_url, status_code)
         )
 
         conn.commit()
@@ -933,9 +933,8 @@ def log_status():
     video_title = data.get('video_title')
     video_url = data.get('video_url')
     status_code = data.get('status_code')
-    request_date = data.get('request_date')
 
-    success = insert_log_entry(video_title, video_url, status_code, request_date)
+    success = insert_log_entry(video_title, video_url, status_code)
 
     if success:
         return jsonify({"status": "logged"}), 200
