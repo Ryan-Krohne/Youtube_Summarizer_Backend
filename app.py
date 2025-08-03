@@ -622,7 +622,7 @@ def update_summaries_cache():
         print(f"❌ Error updating summaries cache: {e}")
 
 update_summaries_cache()
-update_popular_videos_cache
+update_popular_videos_cache()
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(func=ping_self, trigger="interval", minutes=14)
