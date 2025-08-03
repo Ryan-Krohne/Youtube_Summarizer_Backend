@@ -713,6 +713,7 @@ def summarize():
 
         # Fallback transcript if no XML transcript
         if not transcript:
+            print("Fallback transcript fetch through api")
             step_start = time.time()
             transcript = roundRobinTranscript(video_id)
             print(f"Time to get fallback transcript: {time.time() - step_start:.2f}s")
