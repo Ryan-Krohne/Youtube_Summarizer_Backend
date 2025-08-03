@@ -401,7 +401,7 @@ def Youtube_Transcript(video_id):
 
 #https://rapidapi.com/timetravellershq/api/youtube-transcripts-api
 #this might not be working
-def Youtube_Transcripts_API(video_id):
+def Youtube_Transcripts_API_failing(video_id):
     url = "https://youtube-transcripts-api.p.rapidapi.com/api/transcript/"
     print("2")
     querystring = {"video_id": video_id, "language": 'en'}
@@ -428,7 +428,7 @@ def Youtube_Transcripts_API(video_id):
 
 #https://rapidapi.com/michelemaccini/api/youtubetextconverter
 #this might not work
-def YouTubeTextConverter(video_id):
+def YouTubeTextConverter_failing(video_id):
     print("3")
     url = "https://youtubetextconverter.p.rapidapi.com/YouTubeCaptions.asp"
     
@@ -457,8 +457,8 @@ def YouTubeTextConverter(video_id):
 current_transcript_index = 0
 transcript_functions.append(Youtube_Transcripts)
 transcript_functions.append(Youtube_Transcript)
-transcript_functions.append(Youtube_Transcripts_API)
-transcript_functions.append(YouTubeTextConverter)
+# transcript_functions.append(Youtube_Transcripts_API_failing)
+# transcript_functions.append(YouTubeTextConverter_failing)
 
 
 def roundRobinTranscript(video_id):
