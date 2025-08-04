@@ -749,8 +749,8 @@ def summarize():
 
         # Fix spacing and extract parts
         step_start = time.time()
-        description = fix_bullet_spacing(response["description"])
-        key_points = response["key_points"]
+        description = response["description"]
+        key_points = fix_bullet_spacing(response["key_points"])
         faqs = response["faqs"]
         print(f"Time to validate output: {time.time() - step_start:.2f}s")
 
