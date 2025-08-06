@@ -187,6 +187,8 @@ def increment_times_summarized(video_id):
     return True
 
 
+
+#TODO: if there's no transcript llm should return "failed"
 def gemini_summary(transcript, faqs):
     try:
         answers_dict = {}
@@ -741,6 +743,8 @@ def summarize():
             step_start = time.time()
             transcript = roundRobinTranscript(video_id)
             print(f"Time to get fallback transcript: {time.time() - step_start:.2f}s")
+
+        #TODO: throw exception if there's still no summary
 
         # Generate summary using AI
         step_start = time.time()
