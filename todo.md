@@ -1,7 +1,8 @@
-1) speed up transcript retrieval speed
-2) more functions for transcript retrieval
-3) ui changes (in-progress)
-4) add video views/likes to db to improving trending_score 
+- create list of channels that i can pull trending videos form
+-  speed up transcript retrieval speed
+-  more functions for transcript retrieval
+- ui changes (in-progress)
+-  add video views/likes to db to improving trending_score 
 
 
 
