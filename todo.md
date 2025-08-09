@@ -10,3 +10,4 @@
 bugs:
 llm not generating 3 faqs. generating 0 or 1 sometimes
 sometimes videos will randomly fail
+transcript doesn't exist and llm says that to user
