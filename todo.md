@@ -3,6 +3,7 @@
 -  more functions for transcript retrieval
 - ui changes (in-progress)
 -  add video views/likes to db to improving trending_score 
+- scrape transcripts of youtube if nothing else works for getting them
 
 
 
