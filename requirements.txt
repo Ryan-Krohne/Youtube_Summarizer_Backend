@@ -10,3 +10,4 @@ APScheduler
 google-generativeai
 psycopg2-binary
 redis
+isodate
