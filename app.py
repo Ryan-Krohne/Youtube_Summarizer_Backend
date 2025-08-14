@@ -40,7 +40,7 @@ redis_client = redis.from_url(redis_url, decode_responses=True)
 
 #stuff for trending videos
 youtube_data_key = os.getenv("youtube_data_api_key")
-youtube_channels = [
+youtube_channels_data = [
   {
     "channelName": "Marques Brownlee (MKBHD)",
     "channelId": "UCBJycsmduvYEL83R_U4JriQ"
@@ -203,7 +203,7 @@ def parse_duration(iso_duration):
     return minutes + seconds / 60  # returns float minutes
 
 def daily_trending_videos(channels=None, min_duration_minutes=4, top_x_per_channel=3):
-    channels_to_use = channels or youtube_channels  # fallback to default global list
+    channels_to_use = channels or youtube_channels_data  # fallback to default global list
     all_videos = []
 
     for channel in channels_to_use:
@@ -288,7 +288,7 @@ def insert_trending_videos(video_list):
             # Return connection to the pool
             connection_pool.putconn(conn)
 
-def fetch_and_store_trending(youtube_channels, num_channels=5, min_duration=4, top_x=2):
+def fetch_and_store_trending(youtube_channels=youtube_channels_data, num_channels=5, min_duration=4, top_x=2):
     
     sampled_channels = random.sample(youtube_channels, k=min(num_channels, len(youtube_channels)))
 
@@ -905,7 +905,7 @@ scheduler = BackgroundScheduler()
 scheduler.add_job(func=ping_self, trigger="interval", minutes=14)
 scheduler.add_job(func=update_popular_videos_cache, trigger="interval", minutes=58)
 scheduler.add_job(func=update_redis_summaries_cache, trigger="interval", minutes=58)
-scheduler.add_job(func=fetch_and_store_trending, trigger="interval", hours="25")
+scheduler.add_job(func=fetch_and_store_trending, trigger="interval", hours=25)
 scheduler.start()
 
 #-------------------------------------------------- Flask Api's --------------------------------------------------
