@@ -795,10 +795,32 @@ def update_popular_videos_cache():
         cursor = conn.cursor()
 
         cursor.execute("""
-            SELECT video_id, youtube_title
-            FROM summaries
-            GROUP BY video_id, youtube_title
-            ORDER BY MAX(popularity_score) DESC
+           WITH recent_videos AS (
+                SELECT *
+                FROM trending_videos
+                WHERE published_at >= NOW() - INTERVAL '30 days'
+            ),
+            unique_channel_videos AS (
+                SELECT DISTINCT ON (channel_id) video_id, title, channel_id
+                FROM recent_videos
+                ORDER BY channel_id, RANDOM()  -- pick random video per channel
+            ),
+            first_8 AS (
+                SELECT *
+                FROM unique_channel_videos
+                ORDER BY RANDOM()   -- randomize channel selection
+                LIMIT 8
+            ),
+            remaining AS (
+                SELECT video_id, title
+                FROM recent_videos
+                WHERE video_id NOT IN (SELECT video_id FROM first_8)
+            )
+            SELECT video_id, title AS youtube_title
+            FROM first_8
+            UNION ALL
+            SELECT video_id, title AS youtube_title
+            FROM remaining
             LIMIT 8;
         """)
         rows = cursor.fetchall()
@@ -817,35 +839,42 @@ def update_popular_videos_cache():
 
 def update_redis_summaries_cache():
     try:
-        print("Updating summaries cache for top 8 unique videos...")
+        print("Updating summaries cache for top 8 popular videos...")
 
+        # Clear old summary cache keys
         for key in redis_client.scan_iter("cache:summary:*"):
             redis_client.delete(key)
         print("🧹 Cleared old summary cache keys.")
 
+        # Fetch popular videos from Redis
+        popular_videos_json = redis_client.get("cache:popular_videos")
+        if not popular_videos_json:
+            print("❌ No popular videos found in cache.")
+            return
 
+        popular_videos = json.loads(popular_videos_json)
+        video_ids = [v["video_id"] for v in popular_videos]
+
+        if not video_ids:
+            print("❌ No video IDs found in popular videos.")
+            return
+
+        # Fetch summaries for these video IDs from the database
         conn = connection_pool.getconn()
         cursor = conn.cursor()
 
         cursor.execute("""
-            SELECT DISTINCT ON (video_id)
-                video_id, youtube_title, description, key_points, faqs
+            SELECT video_id, youtube_title, description, key_points, faqs
             FROM summaries
-            ORDER BY video_id, popularity_score DESC
-            LIMIT 8;
-        """)
+            WHERE video_id = ANY(%s);
+        """, (video_ids,))
         rows = cursor.fetchall()
 
-        print(f"Fetched {len(rows)} rows for caching.")
+        print(f"Fetched {len(rows)} summaries from the database.")
 
-        seen_keys = set()
         for row in rows:
             video_id, youtube_title, description, key_points, faqs_jsonb = row
-
             redis_key = f"cache:summary:{video_id}"
-            if redis_key in seen_keys:
-                print(f"⚠️ Duplicate key detected: {redis_key}")
-            seen_keys.add(redis_key)
 
             summary_data = {
                 "youtube_title": youtube_title,
@@ -866,14 +895,17 @@ def update_redis_summaries_cache():
         print(f"❌ Error updating summaries cache: {e}")
 
 #-------------------------------------------------- Runs on start ------------------------------------------------
-update_redis_summaries_cache()
-update_popular_videos_cache()
+#empty for now, here is a cat
+#      /\_/\  
+#     ( o.o ) 
+#      > ^ <  
 
 #-------------------------------------------------- Schedulers ---------------------------------------------------
 scheduler = BackgroundScheduler()
 scheduler.add_job(func=ping_self, trigger="interval", minutes=14)
 scheduler.add_job(func=update_popular_videos_cache, trigger="interval", minutes=58)
 scheduler.add_job(func=update_redis_summaries_cache, trigger="interval", minutes=58)
+scheduler.add_job(func=fetch_and_store_trending, trigger="interval", hours="25")
 scheduler.start()
 
 #-------------------------------------------------- Flask Api's --------------------------------------------------
@@ -1051,12 +1083,35 @@ def popular_videos():
         conn = connection_pool.getconn()
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT video_id, youtube_title
-            FROM summaries
-            GROUP BY video_id, youtube_title
-            ORDER BY MAX(popularity_score) DESC
+            WITH recent_videos AS (
+                SELECT *
+                FROM trending_videos
+                WHERE published_at >= NOW() - INTERVAL '30 days'
+            ),
+            unique_channel_videos AS (
+                SELECT DISTINCT ON (channel_id) video_id, title, channel_id
+                FROM recent_videos
+                ORDER BY channel_id, RANDOM()  -- pick random video per channel
+            ),
+            first_8 AS (
+                SELECT *
+                FROM unique_channel_videos
+                ORDER BY RANDOM()   -- randomize channel selection
+                LIMIT 8
+            ),
+            remaining AS (
+                SELECT video_id, title
+                FROM recent_videos
+                WHERE video_id NOT IN (SELECT video_id FROM first_8)
+            )
+            SELECT video_id, title AS youtube_title
+            FROM first_8
+            UNION ALL
+            SELECT video_id, title AS youtube_title
+            FROM remaining
             LIMIT 8;
         """)
+
         rows = cursor.fetchall()
         cursor.close()
         connection_pool.putconn(conn)
