@@ -89,7 +89,6 @@ TOP_X = 5
 MIN_DURATION_SECONDS = 240
 MAX_DURATION_SECONDS = 2670
 
-
 # List of functions for getting transcripts
 transcript_functions = []
 
@@ -134,6 +133,8 @@ cache = {
     "timestamp": 0
 }
 CACHE_TTL = 8640
+
+#------------------------------------------------- Python Functions -------------------------------------------------
 
 #100 units per search (expensive)
 def get_top_videos(channel_id, max_results=3):
@@ -862,16 +863,11 @@ def update_redis_summaries_cache():
     except Exception as e:
         print(f"❌ Error updating summaries cache: {e}")
 
-
-
-
-#--------------------------------------------------Runs on start -------------------------------------------------
+#-------------------------------------------------- Runs on start ------------------------------------------------
 update_redis_summaries_cache()
 update_popular_videos_cache()
 
-
-
-#-------------------------------------------------- Schedulers -------------------------------------------------
+#-------------------------------------------------- Schedulers ---------------------------------------------------
 scheduler = BackgroundScheduler()
 scheduler.add_job(func=ping_self, trigger="interval", minutes=14)
 scheduler.add_job(func=update_popular_videos_cache, trigger="interval", minutes=58)
