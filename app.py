@@ -15,6 +15,10 @@ import random
 import json
 from psycopg2 import pool
 import redis
+from datetime import datetime, timedelta
+from isodate import parse_duration
+from datetime import datetime, timedelta, timezone
+import isodate
 
 app = Flask(__name__)
 CORS(app)
@@ -31,6 +35,60 @@ connection_pool = pool.SimpleConnectionPool(
 
 redis_url = os.getenv("REDIS_URL")
 redis_client = redis.from_url(redis_url, decode_responses=True)
+
+#stuff for trending videos
+youtube_data_key = os.getenv("youtube_data_api_key")
+youtube_channels = [
+  {
+    "channelName": "Marques Brownlee (MKBHD)",
+    "channelId": "UCBJycsmduvYEL83R_U4JriQ"
+  },
+  {
+    "channelName": "Louis Rossmann",
+    "channelId": "UCl2mFZoRqjw_ELax4Yisf6w"
+  },
+  {
+    "channelName": "Linus Tech Tips",
+    "channelId": "UCXuqSBlHAE6Xw-yeJA0Tunw"
+  },
+  {
+    "channelName": "Veritasium",
+    "channelId": "UCHnyfMqiRRG1u-2MsSQLbXA"
+  },
+  {
+    "channelName": "Kurzgesagt – In a Nutshell",
+    "channelId": "UCsXVk37bltHxD1rDPwtNM8Q"
+  },
+  {
+    "channelName": "Ali Abdaal",
+    "channelId": "UCoOae5nYA7VqaXzerajD0lg"
+  },
+  {
+    "channelName": "How Money Works",
+    "channelId": "UCkCGANrihzExmu9QiqZpPlQ"
+  },
+  {
+    "channelName": "ColdFusion",
+    "channelId": "UC4QZ_LsYcvcq7qOsOhpAX4A"
+  },
+  {
+    "channelName": "Wendover Productions",
+    "channelId": "UC9RM-iSvTu1uPJb8X5yp3EQ"
+  },
+  {
+    "channelName": "RealLifeLore",
+    "channelId": "UCP5tjEmvPItGyLhmjdwP7Ww"
+  },
+  {
+    "channelName": "The Food Theorists",
+    "channelId": "UCHYoe8kQ-7Gn9ASOlmI0k6Q"
+  }
+]
+
+TOP_X = 5
+MIN_DURATION_SECONDS = 240
+MAX_DURATION_SECONDS = 2670
+
 
 # List of functions for getting transcripts
 transcript_functions = []
@@ -76,6 +134,166 @@ cache = {
     "timestamp": 0
 }
 CACHE_TTL = 8640
+
+#100 units per search (expensive)
+def get_top_videos(channel_id, max_results=3):
+    one_month_ago = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat(timespec="seconds").replace('+00:00', 'Z')
+    url = 'https://youtube.googleapis.com/youtube/v3/search'
+    params = {
+        'part': 'snippet',
+        'channelId': channel_id,
+        'maxResults': max_results,
+        'order': 'viewCount',
+        'publishedAfter': one_month_ago,
+        'type': 'video',
+        'key': youtube_data_key
+    }
+    response = requests.get(url, params=params)
+    response.raise_for_status()
+    data = response.json()
+
+    video_ids = [item['id']['videoId'] for item in data.get('items', [])]
+    return video_ids
+
+#1 unit per call (cheap)
+def get_video_details(video_ids):
+    if isinstance(video_ids, str):
+        video_ids = [video_ids]  # wrap single ID into a list
+
+    url = 'https://youtube.googleapis.com/youtube/v3/videos'
+    params = {
+        'part': 'snippet,contentDetails,statistics',
+        'id': ','.join(video_ids),
+        'key': youtube_data_key
+    }
+    response = requests.get(url, params=params)
+    response.raise_for_status()
+    data = response.json()
+
+    results = []
+    for item in data.get('items', []):
+        snippet = item.get('snippet', {})
+        stats = item.get('statistics', {})
+        content_details = item.get('contentDetails', {})
+
+        results.append({
+            "id": item.get("id"),
+            "title": snippet.get("title"),
+            "publishedAt": snippet.get("publishedAt"),
+            "channelTitle": snippet.get("channelTitle"),
+            "channelId": snippet.get("channelId"),
+            "viewCount": stats.get("viewCount"),
+            "likeCount": stats.get("likeCount"),
+            "commentCount": stats.get("commentCount"),
+            "duration": content_details.get("duration")  # ISO 8601 format
+        })
+
+    return results
+
+def parse_duration(iso_duration):
+    """Convert ISO 8601 YouTube duration (PT#M#S) to total minutes."""
+    match = re.match(r'PT(?:(\d+)M)?(?:(\d+)S)?', iso_duration)
+    if not match:
+        return 0
+    minutes = int(match.group(1) or 0)
+    seconds = int(match.group(2) or 0)
+    return minutes + seconds / 60  # returns float minutes
+
+def daily_trending_videos(channels=None, min_duration_minutes=4, top_x_per_channel=3):
+    channels_to_use = channels or youtube_channels  # fallback to default global list
+    all_videos = []
+
+    for channel in channels_to_use:
+        channel_id = channel["channelId"]
+        top_video_ids = get_top_videos(channel_id, max_results=top_x_per_channel)
+
+        for vid_id in top_video_ids:
+            details_list = get_video_details(vid_id)
+            if not details_list:
+                continue
+
+            details = details_list[0]
+            duration_minutes = parse_duration(details["duration"])
+
+            if duration_minutes >= min_duration_minutes:
+                video_info = {
+                    "id": vid_id,
+                    "title": details["title"],
+                    "channelTitle": details.get("channelTitle", channel["channelName"]),
+                    "channel_id": details.get("channelId") or channel["channelId"],
+                    "duration_minutes": round(duration_minutes, 2),
+                    "views": int(details.get("viewCount") or 0),
+                    "likes": int(details.get("likeCount") or 0),
+                    "comments": int(details.get("commentCount") or 0),
+                    "published_at": details.get("publishedAt") or datetime.now(timezone.utc).isoformat()
+                }
+                all_videos.append(video_info)
+
+    all_videos.sort(key=lambda x: x["views"], reverse=True)
+    return all_videos
+
+def insert_trending_videos(video_list):
+    """
+    Insert or update a list of trending videos into the database using connection pooling.
+    :param video_list: List of dictionaries from daily_trending_videos()
+    """
+    if not video_list:
+        return
+
+    conn = None
+    try:
+        # Get a connection from the pool
+        conn = connection_pool.getconn()
+        cur = conn.cursor()
+
+        for video in video_list:
+            cur.execute("""
+                INSERT INTO trending_videos 
+                    (video_id, title, channel_id, channel_name, duration_minutes, views, likes, comments, published_at, fetched_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (video_id)
+                DO UPDATE SET
+                    title = EXCLUDED.title,
+                    channel_name = EXCLUDED.channel_name,
+                    channel_id = EXCLUDED.channel_id,
+                    duration_minutes = EXCLUDED.duration_minutes,
+                    views = EXCLUDED.views,
+                    likes = EXCLUDED.likes,
+                    comments = EXCLUDED.comments,
+                    fetched_at = EXCLUDED.fetched_at
+            """, (
+                video["id"],
+                video["title"],
+                video.get("channel_id"),  # if you store channel_id
+                video["channelTitle"],       # channel_name
+                video["duration_minutes"],
+                video.get("views", 0),
+                video.get("likes", 0),
+                video.get("comments", 0),
+                video.get("published_at"),   # optional
+                datetime.now(timezone.utc)
+            ))
+
+        conn.commit()
+        cur.close()
+    except Exception as e:
+        print("Error inserting trending videos:", e)
+        if conn:
+            conn.rollback()
+    finally:
+        if conn:
+            # Return connection to the pool
+            connection_pool.putconn(conn)
+
+def fetch_and_store_trending(youtube_channels, num_channels=5, min_duration=4, top_x=2):
+    
+    sampled_channels = random.sample(youtube_channels, k=min(num_channels, len(youtube_channels)))
+
+    trending = daily_trending_videos(sampled_channels, min_duration, top_x)
+    
+    print(trending)
+
+    insert_trending_videos(trending)
 
 def fix_bullet_spacing(text):
     fixed_text = re.sub(r'(?m)(^-\s[^\n]+?)(\n(?!\n)|(?=\Z))', r'\1\n\n', text)
@@ -185,8 +403,6 @@ def increment_times_summarized(video_id):
     finally:
         connection_pool.putconn(conn)
     return True
-
-
 
 #TODO: if there's no transcript llm should return "failed"
 def gemini_summary(transcript, faqs):
@@ -486,7 +702,6 @@ transcript_functions.append(Youtube_Transcript)
 # transcript_functions.append(Youtube_Transcripts_API_failing)
 # transcript_functions.append(YouTubeTextConverter_failing)
 
-
 def roundRobinTranscript(video_id):
     global current_transcript_index
     max_attempts = len(transcript_functions)
@@ -597,7 +812,7 @@ def update_popular_videos_cache():
     except Exception as e:
         print(f"Error updating popular videos cache: {e}")
 
-def update_summaries_cache():
+def update_redis_summaries_cache():
     try:
         print("Updating summaries cache for top 8 unique videos...")
 
@@ -647,13 +862,20 @@ def update_summaries_cache():
     except Exception as e:
         print(f"❌ Error updating summaries cache: {e}")
 
-update_summaries_cache()
+
+
+
+#--------------------------------------------------Runs on start -------------------------------------------------
+update_redis_summaries_cache()
 update_popular_videos_cache()
 
+
+
+#-------------------------------------------------- Schedulers -------------------------------------------------
 scheduler = BackgroundScheduler()
 scheduler.add_job(func=ping_self, trigger="interval", minutes=14)
 scheduler.add_job(func=update_popular_videos_cache, trigger="interval", minutes=58)
-scheduler.add_job(func=update_summaries_cache, trigger="interval", minutes=58)
+scheduler.add_job(func=update_redis_summaries_cache, trigger="interval", minutes=58)
 scheduler.start()
 
 #-------------------------------------------------- Flask Api's --------------------------------------------------
@@ -870,17 +1092,7 @@ def get_transcript():
     else:
         return jsonify({"error": f"Failed to retrieve the XML data. Status code: {response.status_code}"}), 500
 
-@app.route('/gemini_test', methods=['GET'])
-def gemini_test():
-    transcript = '''saying when I get older I'm just gonna hop on trt it just seems like there's like this like idea that trt is essentially like it's kind of like the Natty way it's like it's like people don't associate it with anabolics they're just like oh yeah I'm getting older I'm gonna hop on trt why do you think people see it that way um yeah it's tough because a lot of the literature that has come out is addressing true hypogonadism so if somebody has for example primary hypogonadism is literally when your testies don't respond to the signaling hormones from your brain to the testes so it's literally not responsive enough to make an adequate amount of testosterone to function properly in that case that guy needs trt essentially because what else are you going to do those studies will get conflated often with you know those outcomes were good equals I should be on trt to optimize as well but then the spectrum of risk like I said there's a a reference range on uh blood tests that you'll see that goes from as low as 270 upwards of like 1,200 depending on the lab some of it is more narrow like in Canada we have I don't know it's like 300 to 900 or something absurd and then in the US some places will go up to 1100 it kind of depends but at the end of the day there's obviously a difference between 350 and a th000 in terms of how much andro enens are floating around in your blood so to say that I'm on trt at a th000 versus I'm on trt at 600 it's like you're technically on replacement based on a therapeutic reference range at both of those amounts but how much did you actually need to replace you know the the r and trt how much did you need to replace what you naturally produced typically a lot of guys that are you know not doing the actual clinical guided way of doing trt they are kind of picking what their replacement is which is fine you can do whatever you want and that's not to say that's a bad thing again it's just a spectrum of risk because you know was you could also argue maybe the amount you produce naturally wasn't satisfactory to begin with maybe it'd be better off with a higher amount so it's all dependent on where you land and then also what you actually need to fulfill functions in the body so you'll often see 200 milligrams a week as a standard cookie cutter dose now but that's I would argue in most cases like mini baby cycle territory essentially perpetually is the yeah and this is again some people actually need more than that to achieve therapeutic replacement or symptom relief I should say more specifically but that's few and far between and just because one guy needs that it doesn't mean you need it as well so it's all like the the dose is all individual dependent based on what you need and like your original question was you know people are thinking they need it or I should just be on it not it's not the case typically that people need that high of a dose and often times it is a little bit of a cop out for wanting to optimize to a like sports trt level is what people often call it but and that's not to say that that's bad or good you just need to be cognizant of the underlying risk under that because it is not the equivalent of a study using andrel that brings guys from pipo gadle to a 550 total like you at 1,200 on injectable testosterone and anate every week is not the same as a hypogonadal guy going from 200 to 500 on Andel like conflating the two is not Apples to Apples so as long as you're on top of your health metrics though and you're Highly Educated about what you're doing at a real level because a lot of guys are very very disconnected with what they're actually doing they think they're on trt but it's like you're you're on Mini enhancement territory let's just level with what it actually is and just be aware of that and that's fine no one's going to judge you hopefully but you just need to like proactively take care of it accordingly through your uh screening and make sure ou're not putting yourself i'''
-    
-    if transcript:
-        print(transcript)
-        summary = gemini_summary(transcript, faqs={"Q1":"What's the weather like", "Q2":"What's the weather like", "Q3":"What's the weather like" })
-        return summary
-    else:
-        return "No transcript provided."
-    
+ 
 @app.route('/faq', methods=['GET'])
 def faq():
     print("Running FAQS")
@@ -969,8 +1181,7 @@ def log_status():
         return jsonify({"status": "logged"}), 200
     else:
         return jsonify({"error": "logging failed"}), 500
-
-
+    
 @app.route('/increment_count', methods=['POST'])
 def increment_count():
     data = request.get_json()
