@@ -11,3 +11,10 @@ bugs:
 llm not generating 3 faqs. generating 0 or 1 sometimes
 sometimes videos will randomly fail
 transcript doesn't exist and llm says that to user
+
+IF BACKEND THROWS "500: SSL error: decryption failed or bad record mac":
+CALL SUMMARY AGAIN (frontend change)
+
+another frontend todo
+allow pasting of url to also search for video:
+lets say you paste this "https://youtube-summarizer-lime.vercel.app/summary/GuSc2oKTeDc", it should just trim and search for video id

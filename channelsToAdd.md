@@ -7,3 +7,4 @@ https: //www.youtube.com/@bonappetit/videos
 https: //www.youtube.com/@6MonthsLater/videos
 https: //www.youtube.com/@wsj/videos
 https://www.youtube.com/@hankschannel
+https://www.youtube.com/@GoodWorkMB/videos
