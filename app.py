@@ -20,6 +20,8 @@ from isodate import parse_duration
 from datetime import datetime, timedelta, timezone
 import isodate
 
+
+#-------------------------------------------------- Configurations -------------------------------------------------
 app = Flask(__name__)
 CORS(app)
 RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
@@ -1010,41 +1012,6 @@ def summarize():
             "message": random.choice(errors_messages),
         }), 400
 
-@app.route('/testing', methods=['POST'])
-def testing():
-    time.sleep(10)
-    
-    # Mock data for description and summary
-    description = (
-        "This video provides a clear and concise explanation of tree data structures, focusing specifically on binary search trees. It introduces the concept of trees with a root node and child nodes, emphasizing binary trees where each node has at most two children. The video then delves into the ordering properties of binary search trees, insert and find operations, and the importance of balanced trees to maintain efficiency. The video concludes by explaining tree traversal methods and the code implementation of the insert, find, and print inorder methods, along with an example walkthrough of the methods."
-    )
-    key_points = ("""
-        -   **What are Trees?:** A tree is a data structure where a root node has child nodes that can also have child nodes, creating a hierarchical structure. Binary trees are a specific type where each node has a maximum of two children (left and right nodes). Binary search trees are a type of binary tree with an ordering property where left nodes are smaller than the root, and right nodes are larger.\n\n-   **Insertion and Finding:** Inserting a node into a binary search tree involves comparing the new value with the existing nodes, moving left or right based on the comparison, and inserting the new node in an empty spot. Finding a node is similar; it involves comparing the target value with the current node, moving left or right to narrow down the search, making it very fast.\n\n-   **Tree Balancing:** When elements are inserted into a binary search tree in a particular order, the tree can become imbalanced, resembling a long list and reducing search efficiency. Algorithms ensure trees stay balanced, maintaining roughly the same number of nodes on the left and right sides of each node.\n\n-   **Tree Traversal Methods:** There are three common ways to traverse a tree: inorder, preorder, and postorder. Inorder traversal visits the left nodes, then the current node, and finally the right nodes. Preorder visits the current node first, then the left, then the right. Postorder visits the left, then the right, then the current node. Inorder traversals are often used in binary search trees to print nodes in order.\n\n-   **Implementation of insert, find and print inorder:** The video outlines how to implement a binary search tree using node classes with pointers to left and right children, and a data field. The insert method recursively inserts a new node based on its value compared to the current node. The find method uses recursion to check if a node with a given value exists and inorder traversal prints the node left child, itself, then right.
-    """
-    )
-    title = ("Data Structures: Trees")
-
-    faqs = {
-        "How are trees used in computer science and what are some practical examples?": "The video explains that inorder traversals are typically used in binary search trees because they allow the nodes to be printed in order. Practical examples of tree use cases are not provided, but the video notes the implementation of insert, find, and print inorder methods.",
-        "What are data structures, specifically trees, and why are they important?": "Data structures, specifically trees, organize data in a hierarchical structure with a root node and child nodes. Binary search trees, which are covered in the video, are an important type of tree due to their efficiency in searching, inserting, and deleting data, as long as the tree is balanced. They allow quick retrieval of information.",
-        "What types of trees are covered in this video?": "The video focuses on binary trees and binary search trees, where each node has at most two children (left and right)."
-    }
-    # Return as JSON
-    return jsonify({
-        "title": title,
-        "description": description,
-        "key_points": key_points,
-        "faqs" : faqs
-    })
-
-@app.route('/version', methods=['GET'])
-def version():
-    return jsonify({
-        "python_version": sys.version,
-        "flask_version": pkg_resources.get_distribution("flask").version,
-        "openai_version": pkg_resources.get_distribution("openai").version,
-    })
-
 # Flask route to handle the ping
 @app.route("/ping")
 def ping():
@@ -1055,40 +1022,6 @@ def ping():
 def home():
     return "Flask app is running!"
 
-@app.route('/get-transcript', methods=['GET'])
-def get_transcript():
-# URL of the YouTube timed text (XML transcript)
-    url = "https://www.youtube.com/api/timedtext?v=dQw4w9WgXcQ&ei=qkqaZ62WFaCK6dsPpZi9yQ4&caps=asr&opi=112496729&xoaf=5&xosf=1&hl=en&ip=0.0.0.0&ipbits=0&expire=1738190106&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=52354CB8B8F6D35C265EC8FE44CFA9F047ADAFC5.B09A7BBCEB604A4075FFB22DA13B9C8F14406FFA&key=yt8&kind=asr&lang=en&fmt=srv1"
-
-    # Fetch the XML data from the URL
-    response = requests.get(url)
-
-    # Check if the request was successful
-    if response.status_code == 200:
-        # Print the raw XML content directly to the terminal for debugging
-        print("Raw XML Response:")
-        print(response.text)  # This will print the raw XML response to the console
-
-        # Parse the XML data
-        try:
-            root = ET.fromstring(response.text)
-            
-            # Check the root and first few elements to understand the structure
-            print("Root Element:", root.tag)
-            for child in root:
-                print("Child Element:", child.tag, "with text:", child.text)
-            
-            # Extract and combine the text content
-            text = ' '.join([elem.text for elem in root.iter() if elem.text])  # Iterate through all elements
-            
-            # Return the extracted text as a JSON response
-            return jsonify({"transcript": text})
-        except Exception as e:
-            return jsonify({"error": f"Error parsing XML: {str(e)}"}), 500
-    else:
-        return jsonify({"error": f"Failed to retrieve the XML data. Status code: {response.status_code}"}), 500
-
- 
 @app.route('/faq', methods=['GET'])
 def faq():
     print("Running FAQS")
