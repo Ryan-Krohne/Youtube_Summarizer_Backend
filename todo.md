@@ -19,4 +19,5 @@ lets say you paste this "https://youtube-summarizer-lime.vercel.app/summary/GuSc
 summarize videos after searching when inserting to db
 
 
-- add more channels to file, 
+- add more channels to file
+- translation for videos that aren't in english. users can switch between english and native language for summary
