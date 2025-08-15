@@ -513,6 +513,7 @@ def extract_video_id(url):
         r'youtube\.com/watch\?v=([a-zA-Z0-9_-]+)',
         r'm\.youtube\.com/watch\?v=([a-zA-Z0-9_-]+)',
         r'youtube\.com/embed/([a-zA-Z0-9_-]+)',
+        r'youtube\.com/live/([a-zA-Z0-9_-]+)',
     ]
     
     for pattern in patterns:
