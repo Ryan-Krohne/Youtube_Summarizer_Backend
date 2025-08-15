@@ -1,4 +1,3 @@
-- create list of channels that i can pull trending videos form
 -  speed up transcript retrieval speed
 -  more functions for transcript retrieval
 - ui changes (in-progress)
@@ -12,8 +11,6 @@ llm not generating 3 faqs. generating 0 or 1 sometimes
 sometimes videos will randomly fail
 transcript doesn't exist and llm says that to user
 
-IF BACKEND THROWS "500: SSL error: decryption failed or bad record mac":
-CALL SUMMARY AGAIN (frontend change)
 
 another frontend todo
 allow pasting of url to also search for video:
@@ -21,3 +18,6 @@ lets say you paste this "https://youtube-summarizer-lime.vercel.app/summary/GuSc
 
 
 summarize videos after searching when inserting to db
+
+
+- add more channels to file, 
