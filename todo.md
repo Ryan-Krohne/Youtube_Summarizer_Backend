@@ -11,13 +11,9 @@ sometimes videos will randomly fail
 transcript doesn't exist and llm says that to user
 
 
-another frontend todo
-allow pasting of url to also search for video:
-lets say you paste this "https://youtube-summarizer-lime.vercel.app/summary/GuSc2oKTeDc", it should just trim and search for video id
-
-
-summarize videos after searching when inserting to db
-
-
+- summarize videos after searching when inserting to db
+- endpoint to force search and insert to database
 - add more channels to file
+
+- add audio for summaries, computer read it out loud
 - translation for videos that aren't in english. users can switch between english and native language for summary
